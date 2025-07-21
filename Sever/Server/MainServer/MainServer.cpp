@@ -1,11 +1,14 @@
+#pragma once
+
 #include<iostream>
 #include<Windows.h>
 #include<string>
 #include<chrono>
+#include <thread>
 
-#include"../Global/LogManager.h"
-#include "../Global/CreatDirectorys.h"
-#include "../Global/Types.h"
+#include <LogManager.h>
+#include <CreatDirectorys.h>
+#include <Types.h>
 
 //Global Config Setting
 std::string g_strDBID = "";
@@ -20,7 +23,7 @@ std::string g_strMemCachedPort = "";
 ServerType::en enType = ServerType::MainServer;
 static std::string GetStrServerType()
 {
-	return ServerType::GetStrByEnum(enType);
+	return std::string(magic_enum::enum_name(enType));
 }
 
 static bool LoadConfigSetting()
@@ -138,13 +141,17 @@ std::string time_point_to_string(const std::chrono::system_clock::time_point& ti
 
 bool StartLogSetting()
 {
-	std::chrono::system_clock::time_point StartTime = std::chrono::system_clock::now();
-	std::string strFilePath = std::format("Log\\{0}\\{1}\\", GetStrServerType(), time_point_to_string(StartTime, "%Y%m%d"));
+	std::string strFilePath = std::format("Log\\{0}\\", GetStrServerType());
 	if (CreateNestedDirectoryA(strFilePath)) {
 		std::cout << "폴더 생성 성공\n";
 	}
 	else {
 		std::cout << "폴더 생성 실패\n";
+		return false;
+	}
+
+	if (GetLogManager().init(strFilePath) == false)
+	{
 		return false;
 	}
 	return true;
@@ -161,5 +168,10 @@ int main()
 	{
 		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Failed Load Config!!");
 	}
+
+	GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Testing ErrorLog2");
+	GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Testing SystemLog2");
+
+	std::thread t(LogManager::onLoop, GetLogManager());
 	return 0;
 }

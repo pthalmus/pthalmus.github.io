@@ -24,6 +24,9 @@
     <ClCompile Include="..\Global\LogManager.cpp">
       <Filter>Global</Filter>
     </ClCompile>
+    <ClCompile Include="..\Global\CreatDirectorys.cpp">
+      <Filter>Global</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Global\Singleton.h">
