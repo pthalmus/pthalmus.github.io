@@ -1,0 +1,9 @@
+/Sever/Server/.vs
+*.pdb
+*.tlog
+*.user
+/Sever/Server/ChatServer/x64
+/Sever/Server/LoginServer/x64
+/Sever/Server/MainServer/x64
+/Sever/Server/MemCachedServer/x64
+/Sever/Server/UserServer/x64
