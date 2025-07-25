@@ -1,0 +1,4 @@
+// 힌트 파일은 Visual Studio IDE에서 함수 및 매크로 이름과 같은 Visual C++ 식별자를
+// 해석하는 데 도움이 됩니다.
+// 자세한 내용은 다음을 참조하세요. https://go.microsoft.com/fwlink/?linkid=865984
+#define AUTO_REGISTER_PACKET_HANDLER(TypeValue, OpcodeValue, PacketType, Func) namespace { struct PacketHandler_##PacketType { static void Handle(const uint8_t* data, size_t size) { if (size >= sizeof(PacketType)) { const PacketType* pkt = reinterpret_cast<const PacketType*>(data); Func(*pkt); } } static bool Register() { GetPacketDispatcher().Register(TypeValue, static_cast<uint8_t>(OpcodeValue), Handle); return true; } inline static const bool registered_; }; const bool PacketHandler_##PacketType::registered_ = PacketHandler_##PacketType::Register(); }

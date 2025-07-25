@@ -6,6 +6,7 @@
 #include <fstream>
 #include <queue>
 #include <format>
+#include <mutex>
 
 #include <CreatDirectorys.h>
 #include <Types.h>
@@ -19,14 +20,17 @@ struct sLogData
 
 class LogManager : public Singleton<LogManager>
 {
+	std::mutex m_mutex;
 	std::string strBaseLogPath;
 
 	HANDLE hSystemLog;
 	HANDLE hErrorLog;
 
+	bool		m_bRunning;
 public:
 	LogManager();
 	bool init(std::string pstrLogPath);
+	void Release();
 	void ErrorLog(const char* pstrfunc, int nRow, const char* pstrData);
 	void SystemLog(const char* pstrfunc, int nRow, const char* pstrData);
 	DWORD WINAPI onLoop();

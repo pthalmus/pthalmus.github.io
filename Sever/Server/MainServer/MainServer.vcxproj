@@ -135,12 +135,18 @@
     <ClCompile Include="..\Global\CreatDirectorys.cpp" />
     <ClCompile Include="..\Global\LogManager.cpp" />
     <ClCompile Include="MainServer.cpp" />
+    <ClCompile Include="Mainthread.cpp" />
+    <ClCompile Include="NetMsgFuncLogin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Global\CreatDirectorys.h" />
     <ClInclude Include="..\Global\LogManager.h" />
     <ClInclude Include="..\Global\Singleton.h" />
     <ClInclude Include="..\Global\Types.h" />
+    <ClInclude Include="..\Global\UserSocket.h" />
+    <ClInclude Include="Mainthread.h" />
+    <ClInclude Include="NetMsg.h" />
+    <ClInclude Include="NetMsgLogin.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
