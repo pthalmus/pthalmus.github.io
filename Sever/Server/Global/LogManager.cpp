@@ -37,6 +37,9 @@ bool LogManager::init(std::string pstrLogPath)
 
 	m_bRunning = true;
 
+	std::thread tLog(&LogManager::onLoop, this);
+	tLog.detach();
+
 	return true;
 }
 

@@ -13,10 +13,45 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="소스 파일\MainThread">
+      <UniqueIdentifier>{d9efa495-dd95-4413-95f3-27b1958dad42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Global">
+      <UniqueIdentifier>{4ba977d9-c830-4136-bcb9-5d747a2a4cc5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LoginServer.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Mainthread.cpp">
+      <Filter>소스 파일\MainThread</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Global\CreatDirectorys.cpp">
+      <Filter>Global</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Global\LogManager.cpp">
+      <Filter>Global</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Mainthread.h">
+      <Filter>소스 파일\MainThread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\CreatDirectorys.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\LogManager.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Singleton.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Types.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\UserSocket.h">
+      <Filter>Global</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

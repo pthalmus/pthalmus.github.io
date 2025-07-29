@@ -7,6 +7,6 @@
 class NetMsgFunc
 {
 public:
-	static bool Request_Cert_User_FromLogin(PACKET* pBase);
+	static bool Request_Cert_User_FromLogin(NetLogin::request_cert_user_fromLogin* pBase);
 };
 

@@ -1,6 +1,12 @@
-﻿#include <iostream>
+﻿#include<iostream>
+#include <thread>
+
+bool WINAPI Release(DWORD dwType)
+{
+	return GetMainThread().Release(dwType);
+}
 
 int main()
 {
-    std::cout << "Hello World!\n";
+	SetConsoleCtrlHandler((PHANDLER_ROUTINE)Release, TRUE);
 }

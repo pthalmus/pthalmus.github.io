@@ -64,52 +64,22 @@ bool Mainthread::LoadConfigSetting()
 	char strTemp[256] = { 0, };
 	int nTemp = 0;
 
-	//DB Connection Config
-	bResult = GetPrivateProfileStringA("DB", "ID", "", strTemp, sizeof(strTemp), strFilePath.c_str());
+	//MainServer Connection Config
+	bResult = GetPrivateProfileStringA("MainServer", "IP", "", strTemp, sizeof(strTemp), strFilePath.c_str());
 	if (bResult)
 	{
-		m_strDBID = strTemp;
+		m_strMainSIP = strTemp;
 	}
 	else
 	{
-		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Error Occur in Load DB Connection Config(ID)");
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Error Occur in Load MainServer Connection Config(IP)");
 		return false;
 	}
 
-	bResult = GetPrivateProfileStringA("DB", "PW", "", strTemp, sizeof(strTemp), strFilePath.c_str());
-	if (bResult)
-	{
-		m_strDBPW = strTemp;
-	}
-	else
-	{
-		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Error Occur in Load DB Connection Config(PW)");
-		return false;
-	}
+	m_nMainSPort = GetPrivateProfileIntA("MainServer", "PORT", 9973, strFilePath.c_str());
 
-	bResult = GetPrivateProfileStringA("DB", "IP", "", strTemp, sizeof(strTemp), strFilePath.c_str());
-	if (bResult)
-	{
-		m_strDBIP = strTemp;
-	}
-	else
-	{
-		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Error Occur in Load DB Connection Config(IP)");
-		return false;
-	}
-
-	m_nDBPort = GetPrivateProfileIntA("DB", "PORT", 2555, strFilePath.c_str());
-	//Login Server Connection Config
-	m_nLoginPort = GetPrivateProfileIntA("LoginServer", "PORT", 9973, strFilePath.c_str());
-
-	//User Server Connection Config
-	m_nUserPort = GetPrivateProfileIntA("UserServer", "PORT", 9975, strFilePath.c_str());
-
-	//Chat Server Connection Config
-	m_nChatPort = GetPrivateProfileIntA("ChatServer", "PORT", 9977, strFilePath.c_str());
-
-	//MemCached Server Connection Config
-	m_nMemCachedPort = GetPrivateProfileIntA("MemCachedServer", "PORT", 9979, strFilePath.c_str());
+	//User Connection Config
+	m_nUserPort = GetPrivateProfileIntA("LoginServer", "PORT", 10443, strFilePath.c_str());
 
 	return true;
 }

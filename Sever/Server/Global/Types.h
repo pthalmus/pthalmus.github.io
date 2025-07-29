@@ -37,4 +37,4 @@ namespace NetLine {
 	};
 }
 
-#define MAX_THREAD_CNT 6;
+#define MAX_THREAD_CNT 6
