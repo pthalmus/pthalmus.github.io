@@ -8,3 +8,7 @@
 /Sever/Server/MemCachedServer/x64
 /Sever/Server/UserServer/x64
 *.txt
+*.idb
+/Sever/Server/GlobalLib/x64
+*.hint
+/Sever/Server/x64

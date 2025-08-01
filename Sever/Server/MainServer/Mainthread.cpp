@@ -20,7 +20,10 @@ DWORD WINAPI Mainthread::StartMainThread()
 		return 0;
 	}
 
-
+	while (m_bRunning)
+	{
+		Sleep(1);
+	}
 
     return 0;
 }
@@ -247,15 +250,13 @@ DWORD WINAPI Mainthread::LoginSAcceptLoop()
 	while ((hClient = ::accept(hTargetSocket,&ClientAddr, &nAddrSize)) != INVALID_SOCKET)
 	{
 		puts("새 클라이언트가 연결됐습니다.");
-		::EnterCriticalSection(&m_cs);
-		m_LoginSList.push_back(hClient);
-		::LeaveCriticalSection(&m_cs);
 
 		//새 클라이언트에 대한 세션 객체 생성
 		pNewUser = new USERSESSION;
 		::ZeroMemory(pNewUser, sizeof(USERSESSION));
 		pNewUser->hSocket = hClient;
 		pNewUser->eLine = NetLine::NetLine_LoginS;
+		pNewUser->hAddr = ClientAddr;
 
 		//비동기 수신 처리를 위한 OVERLAPPED 구조체 생성.
 		pWol = new WSAOVERLAPPED;
@@ -306,6 +307,7 @@ DWORD WINAPI Mainthread::UserSAcceptLoop()
 		::ZeroMemory(pNewUser, sizeof(USERSESSION));
 		pNewUser->hSocket = hClient;
 		pNewUser->eLine = NetLine::NetLine_UserS;
+		pNewUser->hAddr = ClientAddr;
 
 		//비동기 수신 처리를 위한 OVERLAPPED 구조체 생성.
 		pWol = new WSAOVERLAPPED;
@@ -356,6 +358,7 @@ DWORD WINAPI Mainthread::ChatSAcceptLoop()
 		::ZeroMemory(pNewUser, sizeof(USERSESSION));
 		pNewUser->hSocket = hClient;
 		pNewUser->eLine = NetLine::NetLine_ChatS;
+		pNewUser->hAddr = ClientAddr;
 
 		//비동기 수신 처리를 위한 OVERLAPPED 구조체 생성.
 		pWol = new WSAOVERLAPPED;
@@ -406,6 +409,7 @@ DWORD WINAPI Mainthread::MemCachedSAcceptLoop()
 		::ZeroMemory(pNewUser, sizeof(USERSESSION));
 		pNewUser->hSocket = hClient;
 		pNewUser->eLine = NetLine::NetLine_MemCachedS;
+		pNewUser->hAddr = ClientAddr;
 
 		//비동기 수신 처리를 위한 OVERLAPPED 구조체 생성.
 		pWol = new WSAOVERLAPPED;
@@ -429,6 +433,13 @@ DWORD WINAPI Mainthread::MemCachedSAcceptLoop()
 	}
 
 	return 0;
+}
+
+void Mainthread::AddLoginServer(SOCKET pSession)
+{
+	::EnterCriticalSection(&m_cs);
+	m_LoginSList.push_back(pSession);
+	::LeaveCriticalSection(&m_cs);
 }
 
 DWORD WINAPI Mainthread::ThreadComplete()
@@ -467,8 +478,7 @@ DWORD WINAPI Mainthread::ThreadComplete()
 			//2. 클라이언트가 보낸 데이터를 수신한 경우.
 			else
 			{
-				GetPacketDispatcher().Dispatch(pSession->strRecvBuffer, dwTransferredSize);
-				//SendMessageAll(pSession->strRecvBuffer, dwTransferredSize);
+				GetPacketDispatcher().Dispatch(pSession->strRecvBuffer, dwTransferredSize, pSession);
 				memset(pSession->strRecvBuffer, 0, sizeof(pSession->strRecvBuffer));
 
 				//다시 IOCP에 등록.

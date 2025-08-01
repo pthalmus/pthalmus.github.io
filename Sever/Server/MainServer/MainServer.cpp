@@ -1,8 +1,5 @@
 #pragma once
 
-#include<iostream>
-#include <thread>
-
 #include "Mainthread.h"
 
 bool WINAPI Release(DWORD dwType)

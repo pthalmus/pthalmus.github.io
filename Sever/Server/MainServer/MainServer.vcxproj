@@ -110,11 +110,13 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>../Global;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>GlobalLib.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../Global/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -133,15 +135,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Global\CreatDirectorys.cpp" />
-    <ClCompile Include="..\Global\LogManager.cpp" />
     <ClCompile Include="MainServer.cpp" />
     <ClCompile Include="Mainthread.cpp" />
+    <ClCompile Include="NetMsg.cpp" />
     <ClCompile Include="NetMsgFuncLogin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Global\CreatDirectorys.h" />
     <ClInclude Include="..\Global\LogManager.h" />
+    <ClInclude Include="..\Global\NetWork.h" />
     <ClInclude Include="..\Global\Singleton.h" />
     <ClInclude Include="..\Global\Types.h" />
     <ClInclude Include="..\Global\UserSocket.h" />

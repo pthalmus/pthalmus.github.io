@@ -20,7 +20,16 @@ DWORD WINAPI Mainthread::StartMainThread()
 		return 0;
 	}
 
+	if (StartConnectMainServer() == false)
+	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Failed MainServer Connection!!");
+		return 0;
+	}
 
+	while (m_bRunning)
+	{
+		Sleep(1);
+	}
 
     return 0;
 }
@@ -31,6 +40,7 @@ bool WINAPI Mainthread::Release(DWORD dwType)
 	{
 		m_bRunning = false;
 		GetLogManager().Release();
+		delete m_pMainSSession;
 		::DeleteCriticalSection(&m_cs);
 		
 		for (auto& iter : m_vIocpThread)
@@ -59,7 +69,7 @@ bool Mainthread::StartLogSetting()
 
 bool Mainthread::LoadConfigSetting()
 {
-	std::string strFilePath = "./Config/MainServerConfig.ini";
+	std::string strFilePath = "./Config/LoginServerConfig.ini";
 	bool bResult = false;
 	char strTemp[256] = { 0, };
 	int nTemp = 0;
@@ -111,88 +121,58 @@ bool Mainthread::StartNetSetting()
 		m_vIocpThread.emplace_back(&Mainthread::ThreadComplete, this);
 	}
 
-	SOCKET hListenUserS = ::WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
-	SOCKET hListenChatS = ::WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
-	SOCKET hListenLoginS = ::WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
-	SOCKET hListenMemCachedS = ::WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
+	SOCKET hListenUser = ::WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
 
-	//bind()/listen() UserS
-	SOCKADDR_IN addrUserS;
-	addrUserS.sin_family = AF_INET;
-	addrUserS.sin_addr.S_un.S_addr = ::htonl(INADDR_ANY);
-	addrUserS.sin_port = ::htons(m_nUserPort);
+	//bind()/listen() User
+	SOCKADDR_IN addrUser;
+	addrUser.sin_family = AF_INET;
+	addrUser.sin_addr.S_un.S_addr = ::htonl(INADDR_ANY);
+	addrUser.sin_port = ::htons(m_nUserPort);
 
-	if (::bind(hListenUserS,(SOCKADDR*)&addrUserS, sizeof(SOCKADDR_IN)) == SOCKET_ERROR)
+	if (::bind(hListenUser,(SOCKADDR*)&addrUser, sizeof(SOCKADDR_IN)) == SOCKET_ERROR)
 	{
 		return false;
 	}
 
-	if (::listen(hListenUserS, SOMAXCONN) == SOCKET_ERROR)
+	if (::listen(hListenUser, SOMAXCONN) == SOCKET_ERROR)
 	{
 		return false;
 	}
 
-	m_umListenSocket.insert(std::make_pair(NetLine::NetLine_UserS, hListenUserS));
+	m_umListenSocket.insert(std::make_pair(NetLine::NetLine_UserS, hListenUser));
 
-	//bind()/listen() ChatS
-	SOCKADDR_IN addrChatS;
-	addrChatS.sin_family = AF_INET;
-	addrChatS.sin_addr.S_un.S_addr = ::htonl(INADDR_ANY);
-	addrChatS.sin_port = ::htons(m_nChatPort);
+	std::thread tAcceptUser(&Mainthread::UserAcceptLoop, this);
 
-	if (::bind(hListenChatS, (SOCKADDR*)&addrChatS, sizeof(SOCKADDR_IN)) == SOCKET_ERROR)
+	return true;
+}
+
+bool Mainthread::StartConnectMainServer()
+{
+	m_pMainSSession = new USERSESSION();
+	m_pMainSSession->hSocket = ::socket(AF_INET, SOCK_STREAM, 0);
+	if (m_pMainSSession->hSocket == INVALID_SOCKET)
 	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Can Not Create MainServer Socket");
 		return false;
 	}
 
-	if (::listen(hListenChatS, SOMAXCONN) == SOCKET_ERROR)
+	//포트 바인딩 및 연결
+	SOCKADDR_IN	svraddr = { 0 };
+	svraddr.sin_family = AF_INET;
+	svraddr.sin_port = htons(m_nMainSPort);
+	if (inet_pton(AF_INET, m_strMainSIP.c_str(), &svraddr.sin_addr.S_un.S_addr) != 1)
 	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Main Server IP Convert error!!");
+	}
+	if (::connect(m_pMainSSession->hSocket, (SOCKADDR*)&svraddr, sizeof(svraddr)) == SOCKET_ERROR)
+	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Can Not Connect MainServer");
 		return false;
 	}
 
-	m_umListenSocket.insert(std::make_pair(NetLine::NetLine_ChatS, hListenChatS));
-
-	//bind()/listen() LoginS
-	SOCKADDR_IN addrLoginS;
-	addrLoginS.sin_family = AF_INET;
-	addrLoginS.sin_addr.S_un.S_addr = ::htonl(INADDR_ANY);
-	addrLoginS.sin_port = ::htons(m_nLoginPort);
-
-	if (::bind(hListenLoginS, (SOCKADDR*)&addrLoginS, sizeof(SOCKADDR_IN)) == SOCKET_ERROR)
-	{
-		return false;
-	}
-
-	if (::listen(hListenLoginS, SOMAXCONN) == SOCKET_ERROR)
-	{
-		return false;
-	}
-
-	m_umListenSocket.insert(std::make_pair(NetLine::NetLine_LoginS, hListenLoginS));
-
-	//bind()/listen() MemCachedS
-	SOCKADDR_IN addrMemCachedS;
-	addrMemCachedS.sin_family = AF_INET;
-	addrMemCachedS.sin_addr.S_un.S_addr = ::htonl(INADDR_ANY);
-	addrMemCachedS.sin_port = ::htons(m_nMemCachedPort);
-
-	if (::bind(hListenMemCachedS, (SOCKADDR*)&addrMemCachedS, sizeof(SOCKADDR_IN)) == SOCKET_ERROR)
-	{
-		return false;
-	}
-
-	if (::listen(hListenMemCachedS, SOMAXCONN) == SOCKET_ERROR)
-	{
-		return false;
-	}
-
-	m_umListenSocket.insert(std::make_pair(NetLine::NetLine_MemCachedS, hListenMemCachedS));
-
-	std::thread tAcceptLoginS(&Mainthread::LoginSAcceptLoop, this);
-	std::thread tAcceptUserS(&Mainthread::UserSAcceptLoop, this);
-	std::thread tAcceptChatS(&Mainthread::ChatSAcceptLoop, this);
-	std::thread tAcceptMemCachedS(&Mainthread::MemCachedSAcceptLoop, this);
-
+	//Connect 성공시 서버 등록 요청
+	NetLogin::request_connect_fromLogin* pMsg = CREATE_PACKET(NetLogin::request_connect_fromLogin, NetLine::NetLine_LoginS, NetLogin::eRequest_Connect_FromLogin);
+	NetMsgFunc::Request_Connect_FromLogin(pMsg, m_pMainSSession);
 	return true;
 }
 
@@ -201,7 +181,13 @@ std::string Mainthread::GetStrServerType()
 	return std::string(magic_enum::enum_name(m_enType));
 }
 
-DWORD WINAPI Mainthread::LoginSAcceptLoop()
+void Mainthread::CompleteConnectMainServer()
+{
+	std::thread tHeartBeat(&Mainthread::HeartBeatLoop, this);
+	tHeartBeat.detach();
+}
+
+DWORD WINAPI Mainthread::UserAcceptLoop()
 {
 	LPWSAOVERLAPPED	pWol = NULL;
 	DWORD			dwReceiveSize, dwFlag;
@@ -212,20 +198,21 @@ DWORD WINAPI Mainthread::LoginSAcceptLoop()
 	SOCKET			hClient;
 	int				nRecvResult = 0;
 
-	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_LoginS];
+	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_User];
 
 	while ((hClient = ::accept(hTargetSocket,&ClientAddr, &nAddrSize)) != INVALID_SOCKET)
 	{
 		puts("새 클라이언트가 연결됐습니다.");
 		::EnterCriticalSection(&m_cs);
-		m_LoginSList.push_back(hClient);
+		m_UserList.push_back(hClient);
 		::LeaveCriticalSection(&m_cs);
 
 		//새 클라이언트에 대한 세션 객체 생성
 		pNewUser = new USERSESSION;
 		::ZeroMemory(pNewUser, sizeof(USERSESSION));
 		pNewUser->hSocket = hClient;
-		pNewUser->eLine = NetLine::NetLine_LoginS;
+		pNewUser->eLine = NetLine::NetLine_User;
+		pNewUser->hAddr = ClientAddr;
 
 		//비동기 수신 처리를 위한 OVERLAPPED 구조체 생성.
 		pWol = new WSAOVERLAPPED;
@@ -251,153 +238,16 @@ DWORD WINAPI Mainthread::LoginSAcceptLoop()
 	return 0;
 }
 
-DWORD WINAPI Mainthread::UserSAcceptLoop()
+DWORD WINAPI Mainthread::HeartBeatLoop()
 {
-	LPWSAOVERLAPPED	pWol = NULL;
-	DWORD			dwReceiveSize, dwFlag;
-	USERSESSION* pNewUser;
-	int				nAddrSize = sizeof(SOCKADDR);
-	WSABUF			wsaBuf;
-	SOCKADDR		ClientAddr;
-	SOCKET			hClient;
-	int				nRecvResult = 0;
-
-	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_UserS];
-
-	while ((hClient = ::accept(hTargetSocket, &ClientAddr, &nAddrSize)) != INVALID_SOCKET)
+	NetLogin::inform_heartbeat_fromLogin* pMsg = CREATE_PACKET(NetLogin::inform_heartbeat_fromLogin, NetLine::NetLine_LoginS, NetLogin::eInform_Heartbeat_FromLogin);
+	while (m_bRunning)
 	{
-		puts("새 클라이언트가 연결됐습니다.");
-		::EnterCriticalSection(&m_cs);
-		m_UserSList.push_back(hClient);
-		::LeaveCriticalSection(&m_cs);
-
-		//새 클라이언트에 대한 세션 객체 생성
-		pNewUser = new USERSESSION;
-		::ZeroMemory(pNewUser, sizeof(USERSESSION));
-		pNewUser->hSocket = hClient;
-		pNewUser->eLine = NetLine::NetLine_UserS;
-
-		//비동기 수신 처리를 위한 OVERLAPPED 구조체 생성.
-		pWol = new WSAOVERLAPPED;
-		::ZeroMemory(pWol, sizeof(WSAOVERLAPPED));
-
-		//(연결된) 클라이언트 소켓 핸들을 IOCP에 연결.
-		::CreateIoCompletionPort((HANDLE)hClient, m_hIocp,
-			(ULONG_PTR)pNewUser,		//KEY!!!
-			0);
-
-		dwReceiveSize = 0;
-		dwFlag = 0;
-		wsaBuf.buf = pNewUser->strRecvBuffer;
-		wsaBuf.len = sizeof(pNewUser->strRecvBuffer);
-
-		//클라이언트가 보낸 정보를 비동기 수신한다.
-		nRecvResult = ::WSARecv(hClient, &wsaBuf, 1, &dwReceiveSize,
-			&dwFlag, pWol, NULL);
-		if (::WSAGetLastError() != WSA_IO_PENDING)
-			puts("ERROR: WSARecv() != WSA_IO_PENDING");
+		NetMsgFunc::Inform_Heartbeat_FromLogin(pMsg, m_pMainSSession);
+		std::this_thread::sleep_for(std::chrono::seconds(60));
 	}
 
-	return 0;
-}
-
-DWORD WINAPI Mainthread::ChatSAcceptLoop()
-{
-	LPWSAOVERLAPPED	pWol = NULL;
-	DWORD			dwReceiveSize, dwFlag;
-	USERSESSION* pNewUser;
-	int				nAddrSize = sizeof(SOCKADDR);
-	WSABUF			wsaBuf;
-	SOCKADDR		ClientAddr;
-	SOCKET			hClient;
-	int				nRecvResult = 0;
-
-	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_ChatS];
-
-	while ((hClient = ::accept(hTargetSocket, &ClientAddr, &nAddrSize)) != INVALID_SOCKET)
-	{
-		puts("새 클라이언트가 연결됐습니다.");
-		::EnterCriticalSection(&m_cs);
-		m_ChatSList.push_back(hClient);
-		::LeaveCriticalSection(&m_cs);
-
-		//새 클라이언트에 대한 세션 객체 생성
-		pNewUser = new USERSESSION;
-		::ZeroMemory(pNewUser, sizeof(USERSESSION));
-		pNewUser->hSocket = hClient;
-		pNewUser->eLine = NetLine::NetLine_ChatS;
-
-		//비동기 수신 처리를 위한 OVERLAPPED 구조체 생성.
-		pWol = new WSAOVERLAPPED;
-		::ZeroMemory(pWol, sizeof(WSAOVERLAPPED));
-
-		//(연결된) 클라이언트 소켓 핸들을 IOCP에 연결.
-		::CreateIoCompletionPort((HANDLE)hClient, m_hIocp,
-			(ULONG_PTR)pNewUser,		//KEY!!!
-			0);
-
-		dwReceiveSize = 0;
-		dwFlag = 0;
-		wsaBuf.buf = pNewUser->strRecvBuffer;
-		wsaBuf.len = sizeof(pNewUser->strRecvBuffer);
-
-		//클라이언트가 보낸 정보를 비동기 수신한다.
-		nRecvResult = ::WSARecv(hClient, &wsaBuf, 1, &dwReceiveSize,
-			&dwFlag, pWol, NULL);
-		if (::WSAGetLastError() != WSA_IO_PENDING)
-			puts("ERROR: WSARecv() != WSA_IO_PENDING");
-	}
-
-	return 0;
-}
-
-DWORD WINAPI Mainthread::MemCachedSAcceptLoop()
-{
-	LPWSAOVERLAPPED	pWol = NULL;
-	DWORD			dwReceiveSize, dwFlag;
-	USERSESSION* pNewUser;
-	int				nAddrSize = sizeof(SOCKADDR);
-	WSABUF			wsaBuf;
-	SOCKADDR		ClientAddr;
-	SOCKET			hClient;
-	int				nRecvResult = 0;
-
-	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_MemCachedS];
-
-	while ((hClient = ::accept(hTargetSocket, &ClientAddr, &nAddrSize)) != INVALID_SOCKET)
-	{
-		puts("새 클라이언트가 연결됐습니다.");
-		::EnterCriticalSection(&m_cs);
-		m_MemCachedSList.push_back(hClient);
-		::LeaveCriticalSection(&m_cs);
-
-		//새 클라이언트에 대한 세션 객체 생성
-		pNewUser = new USERSESSION;
-		::ZeroMemory(pNewUser, sizeof(USERSESSION));
-		pNewUser->hSocket = hClient;
-		pNewUser->eLine = NetLine::NetLine_MemCachedS;
-
-		//비동기 수신 처리를 위한 OVERLAPPED 구조체 생성.
-		pWol = new WSAOVERLAPPED;
-		::ZeroMemory(pWol, sizeof(WSAOVERLAPPED));
-
-		//(연결된) 클라이언트 소켓 핸들을 IOCP에 연결.
-		::CreateIoCompletionPort((HANDLE)hClient, m_hIocp,
-			(ULONG_PTR)pNewUser,		//KEY!!!
-			0);
-
-		dwReceiveSize = 0;
-		dwFlag = 0;
-		wsaBuf.buf = pNewUser->strRecvBuffer;
-		wsaBuf.len = sizeof(pNewUser->strRecvBuffer);
-
-		//클라이언트가 보낸 정보를 비동기 수신한다.
-		nRecvResult = ::WSARecv(hClient, &wsaBuf, 1, &dwReceiveSize,
-			&dwFlag, pWol, NULL);
-		if (::WSAGetLastError() != WSA_IO_PENDING)
-			puts("ERROR: WSARecv() != WSA_IO_PENDING");
-	}
-
+	delete pMsg;
 	return 0;
 }
 
@@ -437,8 +287,7 @@ DWORD WINAPI Mainthread::ThreadComplete()
 			//2. 클라이언트가 보낸 데이터를 수신한 경우.
 			else
 			{
-				GetPacketDispatcher().Dispatch(pSession->strRecvBuffer, dwTransferredSize);
-				//SendMessageAll(pSession->strRecvBuffer, dwTransferredSize);
+				GetPacketDispatcher().Dispatch(pSession->strRecvBuffer, dwTransferredSize, pSession);
 				memset(pSession->strRecvBuffer, 0, sizeof(pSession->strRecvBuffer));
 
 				//다시 IOCP에 등록.
@@ -457,7 +306,10 @@ DWORD WINAPI Mainthread::ThreadComplete()
 					pWol,
 					NULL);
 				if (::WSAGetLastError() != WSA_IO_PENDING)
-					puts("\tGQCS: ERROR: WSARecv()");
+				{
+					GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "GQCS: ERROR: WSARecv()");
+				}
+					
 			}
 		}
 		else
@@ -502,24 +354,18 @@ void Mainthread::CloseClient(USERSESSION* pSession)
 	::EnterCriticalSection(&m_cs);
 	switch (pSession->eLine)
 	{
-	case NetLine::NetLine_UserS:
-		m_UserSList.remove(pSession->hSocket);
-		break;
-	case NetLine::NetLine_ChatS:
-		m_ChatSList.remove(pSession->hSocket);
-		break;
-	case NetLine::NetLine_LoginS:
-		m_LoginSList.remove(pSession->hSocket);
-		break;
-	case NetLine::NetLine_MemCachedS:
-		m_MemCachedSList.remove(pSession->hSocket);
+	case NetLine::NetLine_User:
+		m_UserList.remove(pSession->hSocket);
 		break;
 	default:
-		m_UserSList.remove(pSession->hSocket);
-		m_ChatSList.remove(pSession->hSocket);
-		m_LoginSList.remove(pSession->hSocket);
-		m_MemCachedSList.remove(pSession->hSocket);
+		m_UserList.remove(pSession->hSocket);
 		break;
 	}
 	::LeaveCriticalSection(&m_cs);
 }
+
+USERSESSION* Mainthread::GetMainServer()
+{
+	return m_pMainSSession;
+}
+

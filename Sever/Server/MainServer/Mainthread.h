@@ -1,18 +1,19 @@
 #pragma once
 
-
-#include <winsock2.h>
-#pragma comment(lib, "ws2_32")
+#include <UserSocket.h>
 #include <unordered_map>
 #include <format>
 #include <windows.h>
 #include <string>
+#include <chrono>
+
 
 #include <Types.h>
 #include <Singleton.h>
 #include <LogManager.h>
 #include <CreatDirectorys.h>
-#include <UserSocket.h>
+
+#include "NetMsg.h"
 
 class Mainthread : public Singleton<Mainthread>
 {
@@ -50,6 +51,8 @@ public:
 	DWORD WINAPI UserSAcceptLoop();
 	DWORD WINAPI ChatSAcceptLoop();
 	DWORD WINAPI MemCachedSAcceptLoop();
+
+	void AddLoginServer(SOCKET pSession);
 
 	DWORD WINAPI ThreadComplete();
 

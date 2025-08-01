@@ -33,22 +33,25 @@
     <ClCompile Include="MainServer.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="..\Global\LogManager.cpp">
-      <Filter>Global</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Global\CreatDirectorys.cpp">
-      <Filter>Global</Filter>
-    </ClCompile>
     <ClCompile Include="Mainthread.cpp">
       <Filter>소스 파일\MainThread</Filter>
     </ClCompile>
     <ClCompile Include="NetMsgFuncLogin.cpp">
       <Filter>소스 파일\NetMsgFunc\Source</Filter>
     </ClCompile>
+    <ClCompile Include="NetMsg.cpp">
+      <Filter>소스 파일\NetMsgFunc\Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Global\Singleton.h">
-      <Filter>Global</Filter>
+    <ClInclude Include="Mainthread.h">
+      <Filter>소스 파일\MainThread</Filter>
+    </ClInclude>
+    <ClInclude Include="NetMsg.h">
+      <Filter>소스 파일\NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="NetMsgLogin.h">
+      <Filter>소스 파일\NetMsgFunc\Header</Filter>
     </ClInclude>
     <ClInclude Include="..\Global\CreatDirectorys.h">
       <Filter>Global</Filter>
@@ -56,20 +59,17 @@
     <ClInclude Include="..\Global\LogManager.h">
       <Filter>Global</Filter>
     </ClInclude>
+    <ClInclude Include="..\Global\NetWork.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Singleton.h">
+      <Filter>Global</Filter>
+    </ClInclude>
     <ClInclude Include="..\Global\Types.h">
       <Filter>Global</Filter>
     </ClInclude>
-    <ClInclude Include="Mainthread.h">
-      <Filter>소스 파일\MainThread</Filter>
-    </ClInclude>
     <ClInclude Include="..\Global\UserSocket.h">
       <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="NetMsg.h">
-      <Filter>소스 파일\NetMsgFunc\Header</Filter>
-    </ClInclude>
-    <ClInclude Include="NetMsgLogin.h">
-      <Filter>소스 파일\NetMsgFunc\Header</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

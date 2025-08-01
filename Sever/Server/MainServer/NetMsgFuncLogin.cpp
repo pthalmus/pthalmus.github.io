@@ -1,9 +1,23 @@
 #include "NetMsg.h"
 
-AUTO_REGISTER_PACKET_HANDLER(NetLine::NetLine_LoginS, NetLogin::eRequest_Cert_User_fromLogin, NetLogin::request_cert_user_fromLogin, NetMsgFunc::Request_Cert_User_FromLogin)
-
-bool NetMsgFunc::Request_Cert_User_FromLogin(NetLogin::request_cert_user_fromLogin* pBase)
+bool NetMsgFunc::Request_Connect_FromLogin(NetLogin::request_connect_fromLogin* pBase, USERSESSION* pSession)
 {
+	if (pSession->eLine != NetLine::NetLine_LoginS)
+	{
+		return false;
+	}
+	//GetMainThread().AddLoginServer(pSession->hSocket);
+
+	GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Complete Connect LoginServer!!");
+	return true;
+}
+
+bool NetMsgFunc::Inform_Heartbeat_FromLogin(NetLogin::inform_heartbeat_fromLogin* pBase, USERSESSION* pSession)
+{
+	if (pSession->eLine != NetLine::NetLine_LoginS)
+	{
+		return false;
+	}
 
 
 	return true;
