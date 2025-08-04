@@ -9,7 +9,7 @@
 class NetMsgFunc
 {
 public:
-	static bool Request_Connect_FromLogin(NetLogin::request_connect_fromLogin* pBase, USERSESSION* pSession);
-	static bool Inform_Heartbeat_FromLogin(NetLogin::inform_heartbeat_fromLogin* pBase, USERSESSION* pSession);
+	static bool Request_Connect_FromLogin(NetMain::request_connect_fromLogin* pBase, USERSESSION* pSession);
+	static bool Inform_Heartbeat_FromLogin(NetMain::inform_heartbeat_fromLogin* pBase, USERSESSION* pSession);
 };
 

@@ -42,6 +42,9 @@
     <ClCompile Include="NetMsg.cpp">
       <Filter>소스 파일\NetMsgFunc\Source</Filter>
     </ClCompile>
+    <ClCompile Include="NetMsgFuncUser.cpp">
+      <Filter>소스 파일\NetMsgFunc\Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Mainthread.h">

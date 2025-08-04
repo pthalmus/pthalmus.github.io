@@ -12,3 +12,6 @@
 /Sever/Server/GlobalLib/x64
 *.hint
 /Sever/Server/x64
+/Sever/Client/.vs
+/Sever/Client/Client/.vs
+/Sever/Client/Client/x64

@@ -135,6 +135,7 @@
     <ClCompile Include="Mainthread.cpp" />
     <ClCompile Include="NetMsg.cpp" />
     <ClCompile Include="NetMsgFuncMain.cpp" />
+    <ClCompile Include="NetMsgFuncUser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Global\CreatDirectorys.h" />

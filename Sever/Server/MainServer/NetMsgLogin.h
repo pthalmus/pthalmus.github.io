@@ -4,7 +4,7 @@
 
 #pragma pack(push, 1)
 
-namespace NetLogin
+namespace NetMain
 {
 	enum eNetResult
 	{

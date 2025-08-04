@@ -89,7 +89,7 @@ bool Mainthread::LoadConfigSetting()
 	m_nMainSPort = GetPrivateProfileIntA("MainServer", "PORT", 9973, strFilePath.c_str());
 
 	//User Connection Config
-	m_nUserPort = GetPrivateProfileIntA("LoginServer", "PORT", 10443, strFilePath.c_str());
+	m_nUserPort = GetPrivateProfileIntA("User", "PORT", 10443, strFilePath.c_str());
 
 	return true;
 }

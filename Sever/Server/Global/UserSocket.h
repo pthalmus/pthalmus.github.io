@@ -30,7 +30,7 @@ public:
         auto it = handlers_.find(key);
         if (it != handlers_.end())
         {
-            it->second(header, pSession); // 다운캐스팅된 구조체로 전달
+            it->second(header, pSession);
         }
         else
         {

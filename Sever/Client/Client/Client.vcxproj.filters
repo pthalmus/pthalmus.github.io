@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="소스 파일">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Global">
+      <UniqueIdentifier>{f213e9d8-5499-483d-8888-8afbd9082ee9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Protocol">
+      <UniqueIdentifier>{21bf5158-08ee-4532-81b1-ac1fd93ef206}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Protocol\Header">
+      <UniqueIdentifier>{de0d8d22-76c0-4e5b-8a17-d0e0a88ff515}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Protocol\Source">
+      <UniqueIdentifier>{4ed0115f-102e-448c-bfce-d926db562109}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Client.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="NetMsg.cpp">
+      <Filter>Protocol\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="NetMsgFuncLogin.cpp">
+      <Filter>Protocol\Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Server\Global\CreatDirectorys.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Server\Global\LogManager.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Server\Global\NetWork.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Server\Global\Singleton.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Server\Global\Types.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Server\Global\UserSocket.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="NetMsg.h">
+      <Filter>Protocol\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="NetMsgLogin.h">
+      <Filter>Protocol\Header</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

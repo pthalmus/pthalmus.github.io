@@ -1,6 +1,6 @@
 #include "NetMsg.h"
 
-bool NetMsgFunc::Request_Connect_FromLogin(NetLogin::request_connect_fromLogin* pBase, USERSESSION* pSession)
+bool NetMsgFunc::Request_Connect_FromLogin(NetMain::request_connect_fromLogin* pBase, USERSESSION* pSession)
 {
 	if (pSession->eLine != NetLine::NetLine_LoginS)
 	{
@@ -12,7 +12,7 @@ bool NetMsgFunc::Request_Connect_FromLogin(NetLogin::request_connect_fromLogin* 
 	return true;
 }
 
-bool NetMsgFunc::Inform_Heartbeat_FromLogin(NetLogin::inform_heartbeat_fromLogin* pBase, USERSESSION* pSession)
+bool NetMsgFunc::Inform_Heartbeat_FromLogin(NetMain::inform_heartbeat_fromLogin* pBase, USERSESSION* pSession)
 {
 	if (pSession->eLine != NetLine::NetLine_LoginS)
 	{
