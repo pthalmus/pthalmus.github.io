@@ -27,16 +27,16 @@ namespace LogType
 namespace NetLine {
 	enum en
 	{
-		NetLine_Main_LoginS,
-		NetLine_Main_UserS,
-		NetLine_Main_ChatS,
-		NetLine_Main_MemCachedS,
-		NetLine_UserS_User,
-		NetLine_UserS_MemCachedS,
-		NetLine_ChatS_User,
-		NetLine_LoginS_User,
-		NetLine_MemCachedS,
-		eMAX
+		NetLine_Main_LoginS					=0,
+		NetLine_Main_UserS					=1,
+		NetLine_Main_ChatS					=2,
+		NetLine_Main_MemCachedS		=3,
+		NetLine_UserS_User					=4,
+		NetLine_UserS_MemCachedS		=5,
+		NetLine_ChatS_User					=6,
+		NetLine_LoginS_User					=7,
+		NetLine_MemCachedS				=8,
+		eMAX										=255
 	};
 }
 

@@ -78,14 +78,18 @@ DWORD WINAPI LogManager::onLoop()
 {
 	while (m_bRunning == true)
 	{
+
 		m_mutex.lock();
-		sLogData* pLogData = qLog.front();
-		qLog.pop();
+		if (qLog.empty() == false)
+		{
+			sLogData* pLogData = qLog.front();
+			qLog.pop();
+
+			printLog(pLogData);
+
+			delete pLogData;
+		}
 		m_mutex.unlock();
-
-		printLog(pLogData);
-
-		delete pLogData;
 	}
 
 	return 0;

@@ -2,7 +2,7 @@
 
 bool NetMsgFunc::Request_Connect_FromLogin(NetMain::request_connect_fromLogin* pBase, USERSESSION* pSession)
 {
-	if (pSession->eLine != NetLine::NetLine_LoginS)
+	if (pSession->eLine != NetLine::NetLine_Main_LoginS)
 	{
 		return false;
 	}
@@ -14,7 +14,7 @@ bool NetMsgFunc::Request_Connect_FromLogin(NetMain::request_connect_fromLogin* p
 
 bool NetMsgFunc::Inform_Heartbeat_FromLogin(NetMain::inform_heartbeat_fromLogin* pBase, USERSESSION* pSession)
 {
-	if (pSession->eLine != NetLine::NetLine_LoginS)
+	if (pSession->eLine != NetLine::NetLine_Main_LoginS)
 	{
 		return false;
 	}

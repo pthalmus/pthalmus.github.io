@@ -165,7 +165,7 @@ bool Mainthread::StartNetSetting()
 		return false;
 	}
 
-	m_umListenSocket.insert(std::make_pair(NetLine::NetLine_UserS, hListenUserS));
+	m_umListenSocket.insert(std::make_pair(NetLine::NetLine_Main_UserS, hListenUserS));
 
 	//bind()/listen() ChatS
 	SOCKADDR_IN addrChatS;
@@ -183,7 +183,7 @@ bool Mainthread::StartNetSetting()
 		return false;
 	}
 
-	m_umListenSocket.insert(std::make_pair(NetLine::NetLine_ChatS, hListenChatS));
+	m_umListenSocket.insert(std::make_pair(NetLine::NetLine_Main_ChatS, hListenChatS));
 
 	//bind()/listen() LoginS
 	SOCKADDR_IN addrLoginS;
@@ -201,7 +201,7 @@ bool Mainthread::StartNetSetting()
 		return false;
 	}
 
-	m_umListenSocket.insert(std::make_pair(NetLine::NetLine_LoginS, hListenLoginS));
+	m_umListenSocket.insert(std::make_pair(NetLine::NetLine_Main_LoginS, hListenLoginS));
 
 	//bind()/listen() MemCachedS
 	SOCKADDR_IN addrMemCachedS;
@@ -226,6 +226,11 @@ bool Mainthread::StartNetSetting()
 	std::thread tAcceptChatS(&Mainthread::ChatSAcceptLoop, this);
 	std::thread tAcceptMemCachedS(&Mainthread::MemCachedSAcceptLoop, this);
 
+	tAcceptLoginS.detach();
+	tAcceptUserS.detach();
+	tAcceptChatS.detach();
+	tAcceptMemCachedS.detach();
+
 	return true;
 }
 
@@ -245,9 +250,9 @@ DWORD WINAPI Mainthread::LoginSAcceptLoop()
 	SOCKET			hClient;
 	int				nRecvResult = 0;
 
-	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_LoginS];
+	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_Main_LoginS];
 
-	while ((hClient = ::accept(hTargetSocket,&ClientAddr, &nAddrSize)) != INVALID_SOCKET)
+	while (this->m_bRunning && (hClient = ::accept(hTargetSocket,&ClientAddr, &nAddrSize)) != INVALID_SOCKET)
 	{
 		puts("새 클라이언트가 연결됐습니다.");
 
@@ -255,7 +260,7 @@ DWORD WINAPI Mainthread::LoginSAcceptLoop()
 		pNewUser = new USERSESSION;
 		::ZeroMemory(pNewUser, sizeof(USERSESSION));
 		pNewUser->hSocket = hClient;
-		pNewUser->eLine = NetLine::NetLine_LoginS;
+		pNewUser->eLine = NetLine::NetLine_Main_LoginS;
 		pNewUser->hAddr = ClientAddr;
 
 		//비동기 수신 처리를 위한 OVERLAPPED 구조체 생성.
@@ -293,9 +298,9 @@ DWORD WINAPI Mainthread::UserSAcceptLoop()
 	SOCKET			hClient;
 	int				nRecvResult = 0;
 
-	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_UserS];
+	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_Main_UserS];
 
-	while ((hClient = ::accept(hTargetSocket, &ClientAddr, &nAddrSize)) != INVALID_SOCKET)
+	while (this->m_bRunning && (hClient = ::accept(hTargetSocket, &ClientAddr, &nAddrSize)) != INVALID_SOCKET)
 	{
 		puts("새 클라이언트가 연결됐습니다.");
 		::EnterCriticalSection(&m_cs);
@@ -306,7 +311,7 @@ DWORD WINAPI Mainthread::UserSAcceptLoop()
 		pNewUser = new USERSESSION;
 		::ZeroMemory(pNewUser, sizeof(USERSESSION));
 		pNewUser->hSocket = hClient;
-		pNewUser->eLine = NetLine::NetLine_UserS;
+		pNewUser->eLine = NetLine::NetLine_Main_UserS;
 		pNewUser->hAddr = ClientAddr;
 
 		//비동기 수신 처리를 위한 OVERLAPPED 구조체 생성.
@@ -344,9 +349,9 @@ DWORD WINAPI Mainthread::ChatSAcceptLoop()
 	SOCKET			hClient;
 	int				nRecvResult = 0;
 
-	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_ChatS];
+	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_Main_ChatS];
 
-	while ((hClient = ::accept(hTargetSocket, &ClientAddr, &nAddrSize)) != INVALID_SOCKET)
+	while (this->m_bRunning && (hClient = ::accept(hTargetSocket, &ClientAddr, &nAddrSize)) != INVALID_SOCKET)
 	{
 		puts("새 클라이언트가 연결됐습니다.");
 		::EnterCriticalSection(&m_cs);
@@ -357,7 +362,7 @@ DWORD WINAPI Mainthread::ChatSAcceptLoop()
 		pNewUser = new USERSESSION;
 		::ZeroMemory(pNewUser, sizeof(USERSESSION));
 		pNewUser->hSocket = hClient;
-		pNewUser->eLine = NetLine::NetLine_ChatS;
+		pNewUser->eLine = NetLine::NetLine_Main_ChatS;
 		pNewUser->hAddr = ClientAddr;
 
 		//비동기 수신 처리를 위한 OVERLAPPED 구조체 생성.
@@ -397,7 +402,7 @@ DWORD WINAPI Mainthread::MemCachedSAcceptLoop()
 
 	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_MemCachedS];
 
-	while ((hClient = ::accept(hTargetSocket, &ClientAddr, &nAddrSize)) != INVALID_SOCKET)
+	while (this->m_bRunning && (hClient = ::accept(hTargetSocket, &ClientAddr, &nAddrSize)) != INVALID_SOCKET)
 	{
 		puts("새 클라이언트가 연결됐습니다.");
 		::EnterCriticalSection(&m_cs);
@@ -451,7 +456,7 @@ DWORD WINAPI Mainthread::ThreadComplete()
 	BOOL			bResult;
 
 	GetLogManager().SystemLog(__FUNCTION__, __LINE__, "IOCP WorkerThread Start!!");
-	while (true)
+	while (this->m_bRunning)
 	{
 		bResult = ::GetQueuedCompletionStatus(
 			m_hIocp,							//Dequeue할 IOCP 핸들.
@@ -542,16 +547,16 @@ void Mainthread::CloseClient(USERSESSION* pSession)
 	::EnterCriticalSection(&m_cs);
 	switch (pSession->eLine)
 	{
-	case NetLine::NetLine_UserS:
+	case NetLine::NetLine_Main_UserS:
 		m_UserSList.remove(pSession->hSocket);
 		break;
-	case NetLine::NetLine_ChatS:
+	case NetLine::NetLine_Main_ChatS:
 		m_ChatSList.remove(pSession->hSocket);
 		break;
-	case NetLine::NetLine_LoginS:
+	case NetLine::NetLine_Main_LoginS:
 		m_LoginSList.remove(pSession->hSocket);
 		break;
-	case NetLine::NetLine_MemCachedS:
+	case NetLine::NetLine_Main_MemCachedS:
 		m_MemCachedSList.remove(pSession->hSocket);
 		break;
 	default:

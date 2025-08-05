@@ -139,9 +139,11 @@ bool Mainthread::StartNetSetting()
 		return false;
 	}
 
-	m_umListenSocket.insert(std::make_pair(NetLine::NetLine_UserS, hListenUser));
+	m_umListenSocket.insert(std::make_pair(NetLine::NetLine_LoginS_User, hListenUser));
 
 	std::thread tAcceptUser(&Mainthread::UserAcceptLoop, this);
+
+	tAcceptUser.detach();
 
 	return true;
 }
@@ -171,7 +173,7 @@ bool Mainthread::StartConnectMainServer()
 	}
 
 	//Connect 성공시 서버 등록 요청
-	NetLogin::request_connect_fromLogin* pMsg = CREATE_PACKET(NetLogin::request_connect_fromLogin, NetLine::NetLine_LoginS, NetLogin::eRequest_Connect_FromLogin);
+	NetMain::request_connect_fromLogin* pMsg = CREATE_PACKET(NetMain::request_connect_fromLogin, NetLine::NetLine_Main_LoginS, NetMain::eRequest_Connect_FromLogin);
 	NetMsgFunc::Request_Connect_FromLogin(pMsg, m_pMainSSession);
 	return true;
 }
@@ -198,7 +200,7 @@ DWORD WINAPI Mainthread::UserAcceptLoop()
 	SOCKET			hClient;
 	int				nRecvResult = 0;
 
-	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_User];
+	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_LoginS_User];
 
 	while ((hClient = ::accept(hTargetSocket,&ClientAddr, &nAddrSize)) != INVALID_SOCKET)
 	{
@@ -211,7 +213,7 @@ DWORD WINAPI Mainthread::UserAcceptLoop()
 		pNewUser = new USERSESSION;
 		::ZeroMemory(pNewUser, sizeof(USERSESSION));
 		pNewUser->hSocket = hClient;
-		pNewUser->eLine = NetLine::NetLine_User;
+		pNewUser->eLine = NetLine::NetLine_LoginS_User;
 		pNewUser->hAddr = ClientAddr;
 
 		//비동기 수신 처리를 위한 OVERLAPPED 구조체 생성.
@@ -240,7 +242,7 @@ DWORD WINAPI Mainthread::UserAcceptLoop()
 
 DWORD WINAPI Mainthread::HeartBeatLoop()
 {
-	NetLogin::inform_heartbeat_fromLogin* pMsg = CREATE_PACKET(NetLogin::inform_heartbeat_fromLogin, NetLine::NetLine_LoginS, NetLogin::eInform_Heartbeat_FromLogin);
+	NetMain::inform_heartbeat_fromLogin* pMsg = CREATE_PACKET(NetMain::inform_heartbeat_fromLogin, NetLine::NetLine_Main_LoginS, NetMain::eInform_Heartbeat_FromLogin);
 	while (m_bRunning)
 	{
 		NetMsgFunc::Inform_Heartbeat_FromLogin(pMsg, m_pMainSSession);
@@ -260,7 +262,7 @@ DWORD WINAPI Mainthread::ThreadComplete()
 	BOOL			bResult;
 
 	GetLogManager().SystemLog(__FUNCTION__, __LINE__, "IOCP WorkerThread Start!!");
-	while (true)
+	while (this->m_bRunning)
 	{
 		bResult = ::GetQueuedCompletionStatus(
 			m_hIocp,							//Dequeue할 IOCP 핸들.
@@ -354,7 +356,7 @@ void Mainthread::CloseClient(USERSESSION* pSession)
 	::EnterCriticalSection(&m_cs);
 	switch (pSession->eLine)
 	{
-	case NetLine::NetLine_User:
+	case NetLine::NetLine_LoginS_User:
 		m_UserList.remove(pSession->hSocket);
 		break;
 	default:
