@@ -12,6 +12,7 @@
 #include <Singleton.h>
 #include <LogManager.h>
 #include <CreatDirectorys.h>
+#include <DataBaseManager.h>
 
 #include "NetMsg.h"
 
@@ -21,8 +22,7 @@ class Mainthread : public Singleton<Mainthread>
 	ServerType::en m_enType = ServerType::MainServer;
 	std::string m_strDBID = "";
 	std::string m_strDBPW = "";
-	std::string m_strDBIP = "";
-	int m_nDBPort = 0;
+	std::string m_strServer = "";
 	int m_nLoginPort = 0;
 	int m_nUserPort = 0;
 	int m_nChatPort = 0;
@@ -45,6 +45,7 @@ public:
 	bool StartLogSetting();
 	bool LoadConfigSetting();
 	bool StartNetSetting();
+	bool StartDBConnection();
 	std::string GetStrServerType();
 
 	DWORD WINAPI LoginSAcceptLoop();

@@ -141,6 +141,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\Global\CreatDirectorys.h" />
+    <ClInclude Include="..\Global\DataBaseManager.h" />
     <ClInclude Include="..\Global\LogManager.h" />
     <ClInclude Include="..\Global\NetWork.h" />
     <ClInclude Include="..\Global\Singleton.h" />
@@ -151,6 +152,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CreatDirectorys.cpp" />
+    <ClCompile Include="DataBaseManager.cpp" />
     <ClCompile Include="GlobalLib.cpp" />
     <ClCompile Include="LogManager.cpp" />
     <ClCompile Include="pch.cpp">

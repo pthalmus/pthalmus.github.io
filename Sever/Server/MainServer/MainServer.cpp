@@ -13,5 +13,7 @@ int main()
 	SetConsoleCtrlHandler((PHANDLER_ROUTINE)Release, TRUE);
 
 	tMainThread.join();
+
+	Release(CTRL_C_EVENT);
 	return 0;
 }

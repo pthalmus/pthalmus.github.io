@@ -40,4 +40,13 @@ namespace NetLine {
 	};
 }
 
+namespace SQLTYPE {
+	enum en
+	{
+		SQL_MEMBER							=1,
+		SQL_USER								=2,
+		eMAX										=255
+	};
+}
+
 #define MAX_THREAD_CNT 6

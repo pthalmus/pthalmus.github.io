@@ -20,6 +20,13 @@ DWORD WINAPI Mainthread::StartMainThread()
 		return 0;
 	}
 
+	if (StartDBConnection() == false)
+	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Failed DB Setting!!");
+		return 0;
+	}
+
+	std::cout << "Main Thread Start Complete!!" << std::endl;
 	while (m_bRunning)
 	{
 		Sleep(1);
@@ -90,18 +97,17 @@ bool Mainthread::LoadConfigSetting()
 		return false;
 	}
 
-	bResult = GetPrivateProfileStringA("DB", "IP", "", strTemp, sizeof(strTemp), strFilePath.c_str());
+	bResult = GetPrivateProfileStringA("DB", "Server", "", strTemp, sizeof(strTemp), strFilePath.c_str());
 	if (bResult)
 	{
-		m_strDBIP = strTemp;
+		m_strServer = strTemp;
 	}
 	else
 	{
-		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Error Occur in Load DB Connection Config(IP)");
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Error Occur in Load DB Connection Config(Server)");
 		return false;
 	}
 
-	m_nDBPort = GetPrivateProfileIntA("DB", "PORT", 2555, strFilePath.c_str());
 	//Login Server Connection Config
 	m_nLoginPort = GetPrivateProfileIntA("LoginServer", "PORT", 9973, strFilePath.c_str());
 
@@ -231,6 +237,28 @@ bool Mainthread::StartNetSetting()
 	tAcceptChatS.detach();
 	tAcceptMemCachedS.detach();
 
+	return true;
+}
+
+bool Mainthread::StartDBConnection()
+{
+	if (GetDBManager().init(m_strDBID, m_strDBPW, m_strServer) == false)
+	{
+		GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Failed initalize DB Connection");
+		return false;
+	}
+
+	if (GetDBManager().Connect(STRDSN_MEMBER_W) == false)
+	{
+		GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Failed initalize MemberDB Connection");
+		return false;
+	}
+
+	if (GetDBManager().Connect(STRDSN_USER_W) == false)
+	{
+		GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Failed initalize UserDB Connection");
+		return false;
+	}
 	return true;
 }
 

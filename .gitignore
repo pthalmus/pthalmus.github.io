@@ -15,3 +15,7 @@
 /Sever/Client/.vs
 /Sever/Client/Client/.vs
 /Sever/Client/Client/x64
+/Sever/Server/MemberDatabase/스키마 로그 가져오기
+*.cache
+*.jfm
+*.dbmdl
