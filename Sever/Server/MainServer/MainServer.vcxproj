@@ -136,6 +136,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DBFunc.cpp" />
+    <ClCompile Include="DBThread.cpp" />
     <ClCompile Include="MainServer.cpp" />
     <ClCompile Include="Mainthread.cpp" />
     <ClCompile Include="NetMsg.cpp" />
@@ -148,6 +150,9 @@
     <ClInclude Include="..\Global\Singleton.h" />
     <ClInclude Include="..\Global\Types.h" />
     <ClInclude Include="..\Global\UserSocket.h" />
+    <ClInclude Include="DBFunc.h" />
+    <ClInclude Include="DBStruct.h" />
+    <ClInclude Include="DBThread.h" />
     <ClInclude Include="Mainthread.h" />
     <ClInclude Include="NetMsg.h" />
     <ClInclude Include="NetMsgLogin.h" />

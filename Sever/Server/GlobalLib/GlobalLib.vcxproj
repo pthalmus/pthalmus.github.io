@@ -145,6 +145,7 @@
     <ClInclude Include="..\Global\LogManager.h" />
     <ClInclude Include="..\Global\NetWork.h" />
     <ClInclude Include="..\Global\Singleton.h" />
+    <ClInclude Include="..\Global\ThreadSafeQueue.h" />
     <ClInclude Include="..\Global\Types.h" />
     <ClInclude Include="..\Global\UserSocket.h" />
     <ClInclude Include="framework.h" />

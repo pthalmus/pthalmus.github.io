@@ -1,4 +1,7 @@
 #pragma once
+
+#include <UserSocket.h>
+
 #include <windows.h>
 #include <sql.h>
 #include <sqlext.h>
@@ -10,12 +13,15 @@
 #include <LogManager.h>
 #include <Types.h>
 
+
 typedef struct _SQLDATA
 {
 	SQLTYPE::en		eType;
-	const char		strData[255];
+	USERSESSION* pSession;
+	std::string		strSql;
+	virtual bool Do() { return false; } // Execute the SQL command
+	virtual bool Done() { return false; } // Optional cleanup after execution
 } SQLDATA;
-
 
 class DataBaseManager : public Singleton<DataBaseManager>
 {

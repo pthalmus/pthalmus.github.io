@@ -2,3 +2,5 @@
 
 AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_LoginS, NetMain::eRequest_Connect_FromLogin, eRequest_Connect_FromLogin, NetMain::request_connect_fromLogin, NetMsgFunc::Request_Connect_FromLogin)
 AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_LoginS, NetMain::eInform_Heartbeat_FromLogin, eInform_Heartbeat_FromLogin, NetMain::inform_heartbeat_fromLogin, NetMsgFunc::Inform_Heartbeat_FromLogin)
+AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_LoginS, NetMain::eRequest_Login_FromLogin, eRequest_Login_FromLogin, NetMain::request_login_fromLogin, NetMsgFunc::Request_Login_FromLogin)
+AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_LoginS, NetMain::eResult_Login_FromLogin, eResult_Login_FromLogin, NetMain::result_login_fromLogin, NetMsgFunc::Result_Login_FromLogin)

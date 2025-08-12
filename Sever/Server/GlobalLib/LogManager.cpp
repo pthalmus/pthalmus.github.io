@@ -50,25 +50,41 @@ void LogManager::Release()
 	m_bRunning = false;
 }
 
-void LogManager::ErrorLog(const char* pstrfunc, int nRow, const char* pstrData)
+void LogManager::ErrorLog(const char* pstrfunc, int nRow, const char* pstrData, ...)
 {
+	char msgBuf[1024];
+
+	va_list args;
+	va_start(args, pstrData);
+	vsnprintf(msgBuf, sizeof(msgBuf), pstrData, args);
+	va_end(args);
+
 	sLogData* LogData = new sLogData;
 	LogData->strLogPath = strBaseLogPath + "\\ErrorLog\\";
-
 	LogData->eLogType = LogType::en::ErrorLog;
-	LogData->strLogData = std::format("[{0}:{1}] {2}\n", pstrfunc, nRow, pstrData);
+
+	// msgBuf를 로그 메시지로 사용
+	LogData->strLogData = std::format("[{}:{}] {}\n", pstrfunc, nRow, msgBuf);
 
 	std::lock_guard<std::mutex> lg(m_mutex);
 	qLog.push(LogData);
 }
 
-void LogManager::SystemLog(const char* pstrfunc, int nRow, const char* pstrData)
+void LogManager::SystemLog(const char* pstrfunc, int nRow, const char* pstrData, ...)
 {
+	char msgBuf[1024];
+
+	va_list args;
+	va_start(args, pstrData);
+	vsnprintf(msgBuf, sizeof(msgBuf), pstrData, args);
+	va_end(args);
+
 	sLogData* LogData = new sLogData;
 	LogData->strLogPath = strBaseLogPath + "\\SystemLog\\";
-
 	LogData->eLogType = LogType::en::SystemLog;
-	LogData->strLogData = std::format("[{0}:{1}] {2}\n", pstrfunc, nRow, pstrData);
+
+	// msgBuf를 로그 메시지로 사용
+	LogData->strLogData = std::format("[{}:{}] {}\n", pstrfunc, nRow, msgBuf);
 
 	std::lock_guard<std::mutex> lg(m_mutex);
 	qLog.push(LogData);
@@ -78,7 +94,6 @@ DWORD WINAPI LogManager::onLoop()
 {
 	while (m_bRunning == true)
 	{
-
 		m_mutex.lock();
 		if (qLog.empty() == false)
 		{

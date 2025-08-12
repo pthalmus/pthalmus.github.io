@@ -13,6 +13,7 @@
 #include <LogManager.h>
 #include <CreatDirectorys.h>
 #include <DataBaseManager.h>
+#include <ThreadSafeQueue.h>
 
 #include "NetMsg.h"
 
@@ -38,6 +39,8 @@ class Mainthread : public Singleton<Mainthread>
 	HANDLE	m_hIocp;																			//IOCP 핸들
 	CRITICAL_SECTION  m_cs;																//스레드 동기화 객체
 	std::vector<std::thread> m_vIocpThread;
+
+	std::thread m_hDBThread;
 
 public:
 	DWORD WINAPI StartMainThread();

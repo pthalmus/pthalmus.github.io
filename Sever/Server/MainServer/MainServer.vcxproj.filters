@@ -28,6 +28,9 @@
     <Filter Include="소스 파일\NetMsgFunc\Source">
       <UniqueIdentifier>{e955872d-62dc-4811-a17d-bef32c2e03a4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\DB">
+      <UniqueIdentifier>{7ddd951f-a24d-4924-9be7-db4b74a58d5a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainServer.cpp">
@@ -41,6 +44,12 @@
     </ClCompile>
     <ClCompile Include="NetMsg.cpp">
       <Filter>소스 파일\NetMsgFunc\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DBFunc.cpp">
+      <Filter>소스 파일\DB</Filter>
+    </ClCompile>
+    <ClCompile Include="DBThread.cpp">
+      <Filter>소스 파일\DB</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -70,6 +79,15 @@
     </ClInclude>
     <ClInclude Include="..\Global\UserSocket.h">
       <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="DBStruct.h">
+      <Filter>소스 파일\DB</Filter>
+    </ClInclude>
+    <ClInclude Include="DBFunc.h">
+      <Filter>소스 파일\DB</Filter>
+    </ClInclude>
+    <ClInclude Include="DBThread.h">
+      <Filter>소스 파일\DB</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

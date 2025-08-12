@@ -5,7 +5,16 @@
 
 bool NetMsgFunc::Request_Connect_FromLogin(NetMain::request_connect_fromLogin* pBase, USERSESSION* pSession)
 {
-	::send(pSession->hSocket, (const char*)pBase, sizeof(pBase), 0);
+	if (pBase == nullptr || pSession == nullptr)
+	{
+		return false;
+	}
+	if (pSession->eLine != NetLine::NetLine_Main_LoginS)
+	{
+		return false;
+	}
+
+	WSASend(pSession->hSocket, (LPWSABUF)&pBase, sizeof(pBase), NULL, 0, NULL, NULL);
 	return true;
 }
 

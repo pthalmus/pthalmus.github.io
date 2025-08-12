@@ -15,6 +15,9 @@ namespace NetLogin
 	enum { eRequest_Login_FromUser = 1 };
 	struct request_login_fromUser : public PACKET
 	{
+		char szUserID[32]; // User ID
+		char szPassword[32]; // Password
+		char szClientVersion[16]; // Client Version
 	};
 	////////////////////////////////////////////////////
 
@@ -22,6 +25,7 @@ namespace NetLogin
 	enum { eResult_Login_FromUser = 2 };
 	struct result_login_fromUser : public PACKET
 	{
+		eNetResult eResult; // Result of the login attempt
 	};
 	////////////////////////////////////////////////////
 

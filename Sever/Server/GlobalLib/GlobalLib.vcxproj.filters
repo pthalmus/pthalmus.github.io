@@ -42,6 +42,9 @@
     <ClInclude Include="..\Global\DataBaseManager.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="..\Global\ThreadSafeQueue.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GlobalLib.cpp">

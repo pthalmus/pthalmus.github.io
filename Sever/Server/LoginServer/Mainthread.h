@@ -14,6 +14,7 @@
 #include <CreatDirectorys.h>
 #include <UserSocket.h>
 
+
 #include "NetMsg.h"
 
 class Mainthread : public Singleton<Mainthread>
@@ -31,6 +32,8 @@ class Mainthread : public Singleton<Mainthread>
 	HANDLE	m_hIocp;																			//IOCP 핸들
 	CRITICAL_SECTION  m_cs;																//스레드 동기화 객체
 	std::vector<std::thread> m_vIocpThread;
+
+
 
 public:
 	DWORD WINAPI StartMainThread();

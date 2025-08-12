@@ -31,8 +31,8 @@ public:
 	LogManager();
 	bool init(std::string pstrLogPath);
 	void Release();
-	void ErrorLog(const char* pstrfunc, int nRow, const char* pstrData);
-	void SystemLog(const char* pstrfunc, int nRow, const char* pstrData);
+	void ErrorLog(const char* pstrfunc, int nRow, const char* pstrData, ...);
+	void SystemLog(const char* pstrfunc, int nRow, const char* pstrData, ...);
 	DWORD WINAPI onLoop();
 private:
 	std::queue<sLogData*> qLog;
