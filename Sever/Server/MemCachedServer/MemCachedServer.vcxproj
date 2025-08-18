@@ -105,10 +105,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>../Global;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>../Global/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>GlobalLib.lib;odbc32.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -126,7 +130,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DBThread.cpp" />
+    <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="MemCachedServer.cpp" />
+    <ClCompile Include="NetMsg.cpp" />
+    <ClCompile Include="NetMsgFuncMain.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Global\CreatDirectorys.h" />
+    <ClInclude Include="..\Global\DataBaseManager.h" />
+    <ClInclude Include="..\Global\LogManager.h" />
+    <ClInclude Include="..\Global\NetWork.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsg.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsgChat.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsgLogin.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsgMain.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsgMemCached.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsgUser.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsgUserS.h" />
+    <ClInclude Include="..\Global\Singleton.h" />
+    <ClInclude Include="..\Global\ThreadSafeQueue.h" />
+    <ClInclude Include="..\Global\Types.h" />
+    <ClInclude Include="..\Global\UserSocket.h" />
+    <ClInclude Include="DBThread.h" />
+    <ClInclude Include="MainThread.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

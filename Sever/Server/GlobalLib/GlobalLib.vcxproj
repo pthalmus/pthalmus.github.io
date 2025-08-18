@@ -144,6 +144,13 @@
     <ClInclude Include="..\Global\DataBaseManager.h" />
     <ClInclude Include="..\Global\LogManager.h" />
     <ClInclude Include="..\Global\NetWork.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsg.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsgChat.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsgLogin.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsgMain.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsgMemCached.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsgUser.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsgUserS.h" />
     <ClInclude Include="..\Global\Singleton.h" />
     <ClInclude Include="..\Global\ThreadSafeQueue.h" />
     <ClInclude Include="..\Global\Types.h" />

@@ -20,4 +20,12 @@
 #include <Singleton.h>
 #include <DataBaseManager.h>
 
+#include <Protocol/NetMsg.h>
+#include <Protocol/NetMsgMain.h>
+#include <Protocol/NetMsgLogin.h>
+#include <Protocol/NetMsgUser.h>
+#include <Protocol/NetMsgMemCached.h>
+#include <Protocol/NetMsgChat.h>
+#include <Protocol/NetMsgUserS.h>
+
 #endif //PCH_H

@@ -1,4 +1,4 @@
-#include "NetMsg.h"
+#include <Protocol/NetMsg.h>
 #include "Mainthread.h"
 
 bool NetMsgFunc::Request_Login_FromUser(NetLogin::request_login_fromUser* pBase, USERSESSION* pSession)
@@ -18,14 +18,14 @@ bool NetMsgFunc::Request_Login_FromUser(NetLogin::request_login_fromUser* pBase,
 	// Log the login request
 	GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Login request from User: %s",pBase->szUserID);
 	
-	NetMain::request_login_fromLogin* pMsg = CREATE_PACKET(NetMain::request_login_fromLogin, NetLine::NetLine_Main_LoginS, NetMain::eRequest_Login_FromLogin);
+	NetLogin::request_login_fromLogin* pMsg = CREATE_PACKET(NetLogin::request_login_fromLogin, NetLine::NetLine_Main_LoginS, NetLogin::eRequest_Login_FromLogin);
 	strcpy_s(pMsg->szUserID, sizeof(pMsg->szUserID), pBase->szUserID);
 	strcpy_s(pMsg->szPassword, sizeof(pMsg->szPassword), pBase->szPassword);
 	WSASend(GetMainThread().GetMainServer()->hSocket, (LPWSABUF)&pMsg, sizeof(pMsg), NULL, 0, NULL, NULL);
 	return true;
 }
 
-bool NetMsgFunc::Result_Login_FromUser(NetLogin::result_login_fromUser* pBase, USERSESSION* pSession)
+bool NetMsgFunc::Result_Login_FromLogin(NetLogin::result_login_fromLogin* pBase, USERSESSION* pSession)
 {
 	return true;
 }

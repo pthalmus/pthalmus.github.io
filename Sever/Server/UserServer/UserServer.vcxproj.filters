@@ -9,14 +9,42 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="리소스 파일">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="NetMsgFunc">
+      <UniqueIdentifier>{333a1434-eaf7-48f3-b790-c48735e8e212}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NetMsgFunc\Header">
+      <UniqueIdentifier>{37e65aff-97b1-40be-b33c-7dd6df60662d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NetMsgFunc\Source">
+      <UniqueIdentifier>{0f16a5e9-b03a-45d4-b703-b2017c0104c1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="UserServer.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Global\Protocol\NetMsg.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgChat.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgLogin.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgMain.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgMemCached.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgUser.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgUserS.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

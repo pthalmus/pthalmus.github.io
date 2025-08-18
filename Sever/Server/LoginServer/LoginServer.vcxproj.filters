@@ -9,47 +9,40 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="리소스 파일">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="소스 파일\MainThread">
-      <UniqueIdentifier>{d9efa495-dd95-4413-95f3-27b1958dad42}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Global">
       <UniqueIdentifier>{4ba977d9-c830-4136-bcb9-5d747a2a4cc5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="소스 파일\NetMsgFunc">
-      <UniqueIdentifier>{e0ead762-a859-4c0f-af69-abed911fd556}</UniqueIdentifier>
+    <Filter Include="NetMsgFunc">
+      <UniqueIdentifier>{93fa23b3-0015-487b-9871-f5c140aab3fe}</UniqueIdentifier>
     </Filter>
-    <Filter Include="소스 파일\NetMsgFunc\Header">
+    <Filter Include="NetMsgFunc\Header">
       <UniqueIdentifier>{762cc074-eacc-4cdc-b6fa-704bdaac121d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="소스 파일\NetMsgFunc\Source">
+    <Filter Include="NetMsgFunc\Source">
       <UniqueIdentifier>{0f80113a-42e0-477c-a9c6-ba479a053bf9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainThread">
+      <UniqueIdentifier>{2e4bd13c-dffe-42a6-b51e-4a05678fa941}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LoginServer.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="Mainthread.cpp">
-      <Filter>소스 파일\MainThread</Filter>
+    <ClCompile Include="NetMsg.cpp">
+      <Filter>NetMsgFunc\Source</Filter>
     </ClCompile>
     <ClCompile Include="NetMsgFuncMain.cpp">
-      <Filter>소스 파일\NetMsgFunc\Source</Filter>
-    </ClCompile>
-    <ClCompile Include="NetMsg.cpp">
-      <Filter>소스 파일\NetMsgFunc\Source</Filter>
+      <Filter>NetMsgFunc\Source</Filter>
     </ClCompile>
     <ClCompile Include="NetMsgFuncUser.cpp">
-      <Filter>소스 파일\NetMsgFunc\Source</Filter>
+      <Filter>NetMsgFunc\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Mainthread.cpp">
+      <Filter>MainThread</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Mainthread.h">
-      <Filter>소스 파일\MainThread</Filter>
-    </ClInclude>
     <ClInclude Include="..\Global\CreatDirectorys.h">
       <Filter>Global</Filter>
     </ClInclude>
@@ -65,17 +58,32 @@
     <ClInclude Include="..\Global\UserSocket.h">
       <Filter>Global</Filter>
     </ClInclude>
-    <ClInclude Include="NetMsgUser.h">
-      <Filter>소스 파일\NetMsgFunc\Header</Filter>
-    </ClInclude>
-    <ClInclude Include="NetMsg.h">
-      <Filter>소스 파일\NetMsgFunc\Header</Filter>
-    </ClInclude>
-    <ClInclude Include="NetMsgMain.h">
-      <Filter>소스 파일\NetMsgFunc\Header</Filter>
-    </ClInclude>
     <ClInclude Include="..\Global\NetWork.h">
       <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsg.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgChat.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgLogin.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgMain.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgMemCached.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgUser.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgUserS.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Mainthread.h">
+      <Filter>MainThread</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

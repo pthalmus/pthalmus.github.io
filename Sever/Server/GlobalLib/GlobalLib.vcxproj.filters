@@ -9,9 +9,11 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="리소스 파일">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="Protocol">
+      <UniqueIdentifier>{78dc4749-0474-429e-8deb-eb8e51db414b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Protocol\Header">
+      <UniqueIdentifier>{5d58632f-fa84-4522-993c-73b6e221a160}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -44,6 +46,27 @@
     </ClInclude>
     <ClInclude Include="..\Global\ThreadSafeQueue.h">
       <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsg.h">
+      <Filter>Protocol\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgLogin.h">
+      <Filter>Protocol\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgMain.h">
+      <Filter>Protocol\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgMemCached.h">
+      <Filter>Protocol\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgUser.h">
+      <Filter>Protocol\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgChat.h">
+      <Filter>Protocol\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgUserS.h">
+      <Filter>Protocol\Header</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

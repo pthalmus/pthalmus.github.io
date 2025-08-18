@@ -128,6 +128,15 @@
   <ItemGroup>
     <ClCompile Include="ChatServer.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Global\Protocol\NetMsg.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsgChat.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsgLogin.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsgMain.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsgMemCached.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsgUser.h" />
+    <ClInclude Include="..\Global\Protocol\NetMsgUserS.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

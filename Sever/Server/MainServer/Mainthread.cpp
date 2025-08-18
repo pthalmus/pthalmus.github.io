@@ -1,3 +1,5 @@
+#include "MainThread.h"
+#include "MainThread.h"
 #include "Mainthread.h"
 
 DWORD WINAPI Mainthread::StartMainThread()

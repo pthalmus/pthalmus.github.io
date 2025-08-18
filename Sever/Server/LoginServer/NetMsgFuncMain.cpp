@@ -1,4 +1,4 @@
-#include "NetMsg.h"
+#include <Protocol/NetMsg.h>
 #include "Mainthread.h"
 
 

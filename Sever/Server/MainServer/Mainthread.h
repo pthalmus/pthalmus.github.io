@@ -1,6 +1,7 @@
 #pragma once
 
 #include <UserSocket.h>
+#include <Protocol/NetMsg.h>
 #include <unordered_map>
 #include <format>
 #include <windows.h>
@@ -14,8 +15,6 @@
 #include <CreatDirectorys.h>
 #include <DataBaseManager.h>
 #include <ThreadSafeQueue.h>
-
-#include "NetMsg.h"
 
 class Mainthread : public Singleton<Mainthread>
 {

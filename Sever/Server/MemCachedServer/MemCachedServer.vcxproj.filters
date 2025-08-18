@@ -13,10 +13,93 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Global">
+      <UniqueIdentifier>{365f45ea-a71b-490b-8a6c-dae70cea7a46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NetMsgFunc">
+      <UniqueIdentifier>{c94e8977-8ac9-4a22-9af6-fb39ea994e53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NetMsgFunc\Header">
+      <UniqueIdentifier>{659e2997-5941-4ece-b4d9-2e45fd3234e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="NetMsgFunc\Source">
+      <UniqueIdentifier>{ad6e21ff-139d-4fdf-953d-413402b07c69}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainThread">
+      <UniqueIdentifier>{2dc5a1da-a914-4ca7-b6bf-be628f1e53bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DB">
+      <UniqueIdentifier>{de967cec-83c9-47ed-b3da-fdf2b2721644}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MemCachedServer.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="MainThread.cpp">
+      <Filter>MainThread</Filter>
+    </ClCompile>
+    <ClCompile Include="NetMsg.cpp">
+      <Filter>NetMsgFunc\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="NetMsgFuncMain.cpp">
+      <Filter>NetMsgFunc\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DBThread.cpp">
+      <Filter>DB</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="MainThread.h">
+      <Filter>MainThread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\CreatDirectorys.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\DataBaseManager.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\LogManager.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\NetWork.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Singleton.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\ThreadSafeQueue.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Types.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\UserSocket.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsg.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgChat.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgLogin.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgMain.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgMemCached.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgUser.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Protocol\NetMsgUserS.h">
+      <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="DBThread.h">
+      <Filter>DB</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
