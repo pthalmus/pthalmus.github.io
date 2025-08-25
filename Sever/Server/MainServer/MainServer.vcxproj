@@ -140,6 +140,7 @@
     <ClCompile Include="Mainthread.cpp" />
     <ClCompile Include="NetMsg.cpp" />
     <ClCompile Include="NetMsgFuncLogin.cpp" />
+    <ClCompile Include="NetMsgFuncMemCached.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Global\CreatDirectorys.h" />

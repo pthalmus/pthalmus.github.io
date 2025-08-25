@@ -51,20 +51,17 @@ void DBThread::DBRequestFunc()
 		if (requestQueue.empty() == false)
 		{
 			pData = requestQueue.pop();
-
-			// Process the SQLDATA request
-			switch (pData->eType)
+			if (pData->Do() == false)
 			{
-			case SQLTYPE::SQL_MEMBER:
-				GetDBManager().Excute(STRDSN_MEMBER_W, pData->strSql); // Example SQL command
-				break;
-			case SQLTYPE::SQL_USER:
-				GetDBManager().Excute(STRDSN_USER_W, pData->strSql); // Example SQL command
-				break;
-			default:
-				GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Unknown SQLTYPE: %d", pData->eType);
-				break;
+				GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Failed to execute SQL command: %s", pData->GetSql().c_str());
+				delete pData; // Clean up if execution fails
+				m_mRequet.unlock();
+				continue; // Skip to the next iteration
 			}
+
+			m_mResponse.lock();
+			responseQueue.push(pData); // Push to response queue after processing
+			m_mResponse.unlock();
 		}
 		m_mRequet.unlock();
 	}

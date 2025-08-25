@@ -1,6 +1,10 @@
-#include "NetMsg.h"
+#include <Protocol/NetMsg.h>
 
 AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_LoginS, NetMain::eRequest_Connect_FromLogin, eRequest_Connect_FromLogin, NetMain::request_connect_fromLogin, NetMsgFunc::Request_Connect_FromLogin)
 AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_LoginS, NetMain::eInform_Heartbeat_FromLogin, eInform_Heartbeat_FromLogin, NetMain::inform_heartbeat_fromLogin, NetMsgFunc::Inform_Heartbeat_FromLogin)
-AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_LoginS, NetMain::eRequest_Login_FromLogin, eRequest_Login_FromLogin, NetMain::request_login_fromLogin, NetMsgFunc::Request_Login_FromLogin)
-AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_LoginS, NetMain::eResult_Login_FromLogin, eResult_Login_FromLogin, NetMain::result_login_fromLogin, NetMsgFunc::Result_Login_FromLogin)
+AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_LoginS, NetLogin::eRequest_Login_FromLogin, eRequest_Login_FromLogin, NetLogin::request_login_fromLogin, NetMsgFunc::Request_Login_FromLogin)
+AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_LoginS, NetLogin::eResult_Login_FromLogin, eResult_Login_FromLogin, NetLogin::result_login_fromLogin, NetMsgFunc::Result_Login_FromLogin)
+
+AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_MemCachedS, NetMain::eRequest_Connect_FromMemCached, eRequest_Connect_FromMemCached, NetMain::request_connect_fromMemCached, NetMsgFunc::Request_Connect_FromMemCached)
+AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_MemCachedS, NetMain::eInform_Heartbeat_FromMemCached, eInform_Heartbeat_FromMemCached, NetMain::inform_heartbeat_fromMemCached, NetMsgFunc::Inform_Heartbeat_FromMemCached)
+AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_MemCachedS, NetMain::eRequest_DBInfo_FromMemCached, eRequest_DBInfo_FromMemCached, NetMain::request_dbinfo_fromMemCached, NetMsgFunc::Request_DBInfo_FromMemCached)

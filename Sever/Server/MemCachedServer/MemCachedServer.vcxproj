@@ -130,11 +130,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DBFunc.cpp" />
     <ClCompile Include="DBThread.cpp" />
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="MemCachedServer.cpp" />
     <ClCompile Include="NetMsg.cpp" />
     <ClCompile Include="NetMsgFuncMain.cpp" />
+    <ClCompile Include="NetMsgFuncMemCached.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Global\CreatDirectorys.h" />
@@ -152,6 +154,8 @@
     <ClInclude Include="..\Global\ThreadSafeQueue.h" />
     <ClInclude Include="..\Global\Types.h" />
     <ClInclude Include="..\Global\UserSocket.h" />
+    <ClInclude Include="DBFunc.h" />
+    <ClInclude Include="DBStruct.h" />
     <ClInclude Include="DBThread.h" />
     <ClInclude Include="MainThread.h" />
   </ItemGroup>

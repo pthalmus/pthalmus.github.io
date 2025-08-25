@@ -65,27 +65,72 @@ bool Mainthread::StartLogSetting()
 
 bool Mainthread::StartConnectMainServer()
 {
+	std::cout << "Try Connect MainServer..." << std::endl;
+
 	m_pMainSSession = new USERSESSION();
-	m_pMainSSession->hSocket = ::socket(AF_INET, SOCK_STREAM, 0);
+	m_pMainSSession->eLine = NetLine::NetLine_Main_MemCachedS; // MainServer Line
+
+	// recv_io 멤버 초기화
+	ZeroMemory(&m_pMainSSession->recv_io, sizeof(IO_DATA));
+	m_pMainSSession->recv_io.opType = opType::IO_RECV;
+	m_pMainSSession->recv_io.wsaBuf.buf = m_pMainSSession->recv_io.buffer;
+	m_pMainSSession->recv_io.wsaBuf.len = sizeof(m_pMainSSession->recv_io.buffer);
+
+	m_pMainSSession->hSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
 	if (m_pMainSSession->hSocket == INVALID_SOCKET)
 	{
 		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Can Not Create MainServer Socket");
+		delete m_pMainSSession;
+		m_pMainSSession = nullptr;
 		return false;
 	}
-	//포트 바인딩 및 연결
+
+	HANDLE hIOCPResult = ::CreateIoCompletionPort((HANDLE)m_pMainSSession->hSocket, m_hIocp, (ULONG_PTR)m_pMainSSession, 0);
+	if (hIOCPResult == NULL)
+	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Can Not Associate socket with IOCP");
+		::closesocket(m_pMainSSession->hSocket);
+		delete m_pMainSSession;
+		m_pMainSSession = nullptr;
+		return false;
+	}
+
+	// 포트 바인딩 및 연결
 	SOCKADDR_IN svraddr = { 0 };
 	svraddr.sin_family = AF_INET;
 	svraddr.sin_port = htons(m_nMainSPort);
 	if (inet_pton(AF_INET, m_strMainSIP.c_str(), &svraddr.sin_addr.S_un.S_addr) != 1)
 	{
 		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Main Server IP Convert error!!");
+		::closesocket(m_pMainSSession->hSocket);
+		delete m_pMainSSession;
+		m_pMainSSession = nullptr;
+		return false;
 	}
 	if (::connect(m_pMainSSession->hSocket, (SOCKADDR*)&svraddr, sizeof(svraddr)) == SOCKET_ERROR)
 	{
 		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Can Not Connect MainServer");
+		::closesocket(m_pMainSSession->hSocket);
+		delete m_pMainSSession;
+		m_pMainSSession = nullptr;
 		return false;
 	}
-	//Connect 성공시 서버 등록 요청
+
+	DWORD dwRecvBytes = 0;
+	DWORD dwFlags = 0;
+	if (::WSARecv(m_pMainSSession->hSocket, &m_pMainSSession->recv_io.wsaBuf, 1, &dwRecvBytes, &dwFlags, &m_pMainSSession->recv_io, NULL) == SOCKET_ERROR)
+	{
+		if (::WSAGetLastError() != WSA_IO_PENDING)
+		{
+			GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "WSARecv failed on MainServer connection");
+			::closesocket(m_pMainSSession->hSocket);
+			delete m_pMainSSession;
+			m_pMainSSession = nullptr;
+			return false;
+		}
+	}
+
+	// Connect 성공시 서버 등록 요청
 	NetMain::request_connect_fromMemCached* pMsg = CREATE_PACKET(NetMain::request_connect_fromMemCached, NetLine::NetLine_Main_MemCachedS, NetMain::eRequest_Connect_FromMemCached);
 	NetMsgFunc::Request_Connect_FromMemCached(pMsg, m_pMainSSession);
 	return true;
@@ -98,6 +143,7 @@ std::string Mainthread::GetStrServerType()
 
 void Mainthread::CompleteConnectMainServer()
 {
+	std::cout << "Connect MainServer Success!!" << std::endl;
 	std::thread tHeartBeat(&Mainthread::HeartBeatLoop, this);
 	tHeartBeat.detach();
 
@@ -112,7 +158,7 @@ DWORD WINAPI Mainthread::HeartBeatLoop()
 	while (m_bRunning)
 	{
 		NetMsgFunc::Inform_Heartbeat_FromMemCached(pMsg, m_pMainSSession);
-		std::this_thread::sleep_for(std::chrono::seconds(60));
+		std::this_thread::sleep_for(std::chrono::seconds(600));
 	}
 	delete pMsg;
 	return 0;
@@ -133,7 +179,7 @@ bool Mainthread::LoadConfigSetting()
 	}
 	m_strMainSIP = strTemp;
 	m_nMainSPort = GetPrivateProfileIntA("MainServer", "PORT", 9979, strFilePath.c_str());
-
+	m_nUserSPort = GetPrivateProfileIntA("UserServer", "PORT", 10479, strFilePath.c_str());
 	return true;
 }
 
@@ -170,7 +216,7 @@ bool Mainthread::StartNetSetting()
 	SOCKADDR_IN addrMemCachedS;
 	addrMemCachedS.sin_family = AF_INET;
 	addrMemCachedS.sin_addr.S_un.S_addr = ::htonl(INADDR_ANY);
-	addrMemCachedS.sin_port = ::htons(m_nMainSPort);
+	addrMemCachedS.sin_port = ::htons(m_nUserSPort);
 	if (::bind(m_hListenSocket, (SOCKADDR*)&addrMemCachedS, sizeof(SOCKADDR_IN)) == SOCKET_ERROR)
 	{
 		return false;
@@ -192,91 +238,76 @@ bool Mainthread::StartDBThread()
 DWORD WINAPI Mainthread::ThreadComplete()
 {
 	DWORD			dwTransferredSize = 0;
-	DWORD			dwFlag = 0;
 	USERSESSION* pSession = NULL;
-	LPWSAOVERLAPPED	pWol = NULL;
-	BOOL			bResult;
+	IO_DATA* pIOData = NULL;
+	BOOL				bResult;
 
 	GetLogManager().SystemLog(__FUNCTION__, __LINE__, "IOCP WorkerThread Start!!");
 	while (this->m_bRunning)
 	{
 		bResult = ::GetQueuedCompletionStatus(
-			m_hIocp,							//Dequeue할 IOCP 핸들.
-			&dwTransferredSize,			//수신한 데이터 크기.
-			(PULONG_PTR)&pSession,	//수신된 데이터가 저장된 메모리
-			&pWol,							//OVERLAPPED 구조체.
-			INFINITE);						//이벤트를 무한정 대기.
+			m_hIocp,								//Dequeue할 IOCP 핸들.
+			&dwTransferredSize,				//수신한 데이터 크기.
+			(PULONG_PTR)&pSession,		//수신된 데이터가 저장된 메모리
+			(LPOVERLAPPED*)&pIOData,	//OVERLAPPED 구조체.
+			INFINITE);							//이벤트를 무한정 대기.
 
-		if (bResult == TRUE)
+		if (bResult == TRUE && pIOData != nullptr)
 		{
-			//정상적인 경우.
-
-			/////////////////////////////////////////////////////////////
-			//1. 클라이언트가 소켓을 정상적으로 닫고 연결을 끊은 경우.
-			if (dwTransferredSize == 0)
+			if (pIOData->opType == opType::IO_SEND)
 			{
-				CloseClient(pSession);
-				delete pWol;
-				delete pSession;
-				GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Close Client Nomally.");
+				// 동적으로 할당된 SEND용 객체이므로 해제해야 합니다.
+				delete pIOData;
 			}
-
-			/////////////////////////////////////////////////////////////
-			//2. 클라이언트가 보낸 데이터를 수신한 경우.
-			else
+			else if (pIOData->opType == opType::IO_RECV)
 			{
-				GetPacketDispatcher().Dispatch(pSession->strRecvBuffer, dwTransferredSize, pSession);
-				memset(pSession->strRecvBuffer, 0, sizeof(pSession->strRecvBuffer));
-
-				//다시 IOCP에 등록.
-				DWORD dwReceiveSize = 0;
-				DWORD dwFlag = 0;
-				WSABUF wsaBuf = { 0 };
-				wsaBuf.buf = pSession->strRecvBuffer;
-				wsaBuf.len = sizeof(pSession->strRecvBuffer);
-
-				::WSARecv(
-					pSession->hSocket,	//클라이언트 소켓 핸들
-					&wsaBuf,			//WSABUF 구조체 배열의 주소
-					1,					//배열 요소의 개수
-					&dwReceiveSize,
-					&dwFlag,
-					pWol,
-					NULL);
-				if (::WSAGetLastError() != WSA_IO_PENDING)
-					puts("\tGQCS: ERROR: WSARecv()");
-			}
-		}
-		else
-		{
-			//비정상적인 경우.
-
-			/////////////////////////////////////////////////////////////
-			//3. 완료 큐에서 완료 패킷을 꺼내지 못하고 반환한 경우.
-			if (pWol == NULL)
-			{
-				//IOCP 핸들이 닫힌 경우(서버를 종료하는 경우)도 해당된다.
-				puts("\tGQCS: IOCP 핸들이 닫혔습니다.");
-				break;
-			}
-
-			/////////////////////////////////////////////////////////////
-			//4. 클라이언트가 비정상적으로 종료됐거나
-			//   서버가 먼저 연결을 종료한 경우.
-			else
-			{
-				if (pSession != NULL)
+				// 수신한 데이터가 0이면 연결 종료.
+				if (dwTransferredSize == 0)
 				{
+					// RECV용 pIOData는 USERSESSION의 멤버이므로 삭제하면 안 됩니다!
+					// CloseClient()에서 세션 객체 전체를 해제해야 합니다.
 					CloseClient(pSession);
-					delete pWol;
-					delete pSession;
+					GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Close Client Nomally.");
+					continue;
 				}
 
-				puts("\tGQCS: 서버 종료 혹은 비정상적 연결 종료");
+				// GetPacketDispatcher().Dispatch() 호출 전, 패킷 헤더가 유효한지 확인하는 로직이 추가되면 좋습니다.
+				GetPacketDispatcher().Dispatch(pIOData->buffer, dwTransferredSize, pSession);
+
+				// 다음 수신 작업을 위한 준비를 합니다.
+				// 동일한 USERSESSION 멤버를 사용합니다.
+				pIOData->wsaBuf.len = sizeof(pIOData->buffer);
+				DWORD dwRecvBytes = 0;
+				DWORD dwFlags = 0;
+				if (WSARecv(pSession->hSocket, &pIOData->wsaBuf, 1, &dwRecvBytes, &dwFlags, pIOData, NULL) == SOCKET_ERROR)
+				{
+					if (::WSAGetLastError() != WSA_IO_PENDING)
+					{
+						puts("\tGQCS: ERROR: WSARecv()");
+						CloseClient(pSession); // WSARecv 실패 시 연결 종료
+					}
+				}
+			}
+		}
+		else // bResult == FALSE (오류)
+		{
+			DWORD dwError = GetLastError();
+			if (pIOData != nullptr) {
+				puts("클라이언트 비정상 종료 또는 I/O 작업 실패.");
+				CloseClient(pSession);
+				// SEND 작업일 경우에만 동적으로 할당된 메모리를 해제
+				if (pIOData->opType == opType::IO_SEND)
+				{
+					delete pIOData;
+				}
+			}
+			else
+			{
+				puts("ERROR: GetQueuedCompletionStatus() 실패.");
+				break;
 			}
 		}
 	}
-
 	puts("[IOCP 작업자 스레드 종료]");
 	return 0;
 }
@@ -298,6 +329,17 @@ void Mainthread::CloseClient(USERSESSION* pSession)
 	}
 	::LeaveCriticalSection(&m_cs);
 }
+
+bool Mainthread::AddDBRequest(SQLDATA* pData)
+{
+	if (pData == nullptr)
+	{
+		return false;
+	}
+	m_DBThread.AddRequest(pData);
+	return true;
+}
+
 bool Mainthread::StartDBConnection()
 {
 	

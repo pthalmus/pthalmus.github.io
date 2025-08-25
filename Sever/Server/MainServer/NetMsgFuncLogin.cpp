@@ -1,4 +1,5 @@
-#include "NetMsg.h"
+#include <Protocol/NetMsg.h>
+#include <LogManager.h>
 
 bool NetMsgFunc::Request_Connect_FromLogin(NetMain::request_connect_fromLogin* pBase, USERSESSION* pSession)
 {
@@ -10,7 +11,6 @@ bool NetMsgFunc::Request_Connect_FromLogin(NetMain::request_connect_fromLogin* p
 	{
 		return false;
 	}
-	//GetMainThread().AddLoginServer(pSession->hSocket);
 
 	GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Complete Connect LoginServer!!");
 	return true;
@@ -27,7 +27,7 @@ bool NetMsgFunc::Inform_Heartbeat_FromLogin(NetMain::inform_heartbeat_fromLogin*
 	return true;
 }
 
-bool NetMsgFunc::Request_Login_FromLogin(NetMain::request_login_fromLogin* pBase, USERSESSION* pSession)
+bool NetMsgFunc::Request_Login_FromLogin(NetLogin::request_login_fromLogin* pBase, USERSESSION* pSession)
 {
 	if (pBase == nullptr || pSession == nullptr)
 	{
@@ -42,7 +42,7 @@ bool NetMsgFunc::Request_Login_FromLogin(NetMain::request_login_fromLogin* pBase
 	return false;
 }
 
-bool NetMsgFunc::Result_Login_FromLogin(NetMain::result_login_fromLogin* pBase, USERSESSION* pSession)
+bool NetMsgFunc::Result_Login_FromLogin(NetLogin::result_login_fromLogin* pBase, USERSESSION* pSession)
 {
 	return false;
 }

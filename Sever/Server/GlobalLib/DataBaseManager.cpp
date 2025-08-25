@@ -126,33 +126,68 @@ void DataBaseManager::DIsconnectALL()
     this->connections[STRDSN_USER_W] = SQL_NULL_HDBC;
 }
 
-bool DataBaseManager::Excute(const std::string& strDsn, const std::string& strSql)
+_SQLRESULT DataBaseManager::Excute(const std::string& strDsn, const std::string& strSql)
 {
+	_SQLRESULT result;
+
     SQLHDBC* phDbc = &this->connections[strDsn];
     if (phDbc  == SQL_NULL_HDBC)
     {
         GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Not connected to the database.");
-        return false;
+		result.strErrorMessage = "Not connected to the database.";
+		return result; // Not connected
     }
 
     SQLHSTMT hStmt = SQL_NULL_HSTMT;
     if (SQLAllocHandle(SQL_HANDLE_STMT, phDbc, &hStmt) != SQL_SUCCESS)
     {
         GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Failed to allocate statement handle.");
-        return false;
+		result.strErrorMessage = "Failed to allocate statement handle.";
+		return result; // Failed to allocate statement handle
     }
 
     SQLRETURN ret = SQLExecDirectA(hStmt, (SQLCHAR*)strSql.c_str(), SQL_NTS);
-    if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO)
+    // 결과 처리 (SQLExecDirectA 이후)
+    if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO)
     {
-        std::string strTemp = "Failed to allocate statement handle." + strSql;
+        // 결과 집합(ResultSet)이 있는 SELECT 문일 경우
+        SQLSMALLINT numCols;
+        SQLNumResultCols(hStmt, &numCols);
+
+        while (SQLFetch(hStmt) == SQL_SUCCESS)
+        {
+            std::vector<std::string> row;
+            for (int i = 1; i <= numCols; ++i)
+            {
+                SQLCHAR colData[256];
+                SQLLEN indicator;
+                SQLGetData(hStmt, i, SQL_C_CHAR, colData, sizeof(colData), &indicator);
+                // colData가 널 종료되지 않을 수 있으므로, indicator를 확인하여 안전하게 std::string을 생성
+                if (indicator == SQL_NULL_DATA) {
+                    row.push_back(""); // NULL 값 처리
+                } else if (indicator > 0 && indicator < sizeof(colData)) {
+                    // indicator는 실제 데이터 길이(널 제외), colData가 널 종료되어 있지 않을 수 있으므로 길이 지정
+                    row.push_back(std::string(reinterpret_cast<char*>(colData), static_cast<size_t>(indicator)));
+                } else {
+                    // colData가 0으로 끝날 수도 있으나, 안전하게 최대 길이까지 복사
+                    row.push_back(std::string(reinterpret_cast<char*>(colData), strnlen_s(reinterpret_cast<char*>(colData), sizeof(colData))));
+                }
+            }
+            result.Data.push_back(row);
+        }
+    }
+    else
+    {
+        std::string strTemp = "Failed to execute SQL command:" + strSql;
         GetLogManager().SystemLog(__FUNCTION__, __LINE__, strTemp.c_str());
         SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
-        return false;
+        result.strErrorMessage = "Failed to execute SQL command: " + strSql;
+        return result;
     }
+	result.bSuccess = true;
 
     SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
-    return true;
+    return result;
 }
 
 #include <sstream>

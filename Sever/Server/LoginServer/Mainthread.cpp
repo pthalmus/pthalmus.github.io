@@ -150,16 +150,26 @@ bool Mainthread::StartNetSetting()
 
 bool Mainthread::StartConnectMainServer()
 {
+	std::cout << "Try Connect MainServer..." << std::endl;
+
 	m_pMainSSession = new USERSESSION();
-	m_pMainSSession->hSocket = ::socket(AF_INET, SOCK_STREAM, 0);
+	m_pMainSSession->eLine = NetLine::NetLine_Main_LoginS; //MainServer Line
+	m_pMainSSession->hSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
 	if (m_pMainSSession->hSocket == INVALID_SOCKET)
 	{
 		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Can Not Create MainServer Socket");
 		return false;
 	}
 
+	HANDLE hIOCPResult = ::CreateIoCompletionPort((HANDLE)m_pMainSSession->hSocket, m_hIocp, (ULONG_PTR)m_pMainSSession, 0);
+	if (hIOCPResult == NULL)
+	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Can Not Associate socket with IOCP");
+		return false;
+	}
+
 	//포트 바인딩 및 연결
-	SOCKADDR_IN	svraddr = { 0 };
+	SOCKADDR_IN svraddr = { 0 };
 	svraddr.sin_family = AF_INET;
 	svraddr.sin_port = htons(m_nMainSPort);
 	if (inet_pton(AF_INET, m_strMainSIP.c_str(), &svraddr.sin_addr.S_un.S_addr) != 1)
@@ -169,7 +179,27 @@ bool Mainthread::StartConnectMainServer()
 	if (::connect(m_pMainSSession->hSocket, (SOCKADDR*)&svraddr, sizeof(svraddr)) == SOCKET_ERROR)
 	{
 		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Can Not Connect MainServer");
+		// 에러 발생 시 소켓 닫기
+		::closesocket(m_pMainSSession->hSocket);
+		delete m_pMainSSession;
+		m_pMainSSession = nullptr;
 		return false;
+	}
+
+	DWORD dwRecvBytes = 0;
+	DWORD dwFlags = 0;
+	LPWSAOVERLAPPED	pWol = NULL;
+	if (::WSARecv(m_pMainSSession->hSocket, &m_pMainSSession->recv_io.wsaBuf, 1, &dwRecvBytes, &dwFlags, &m_pMainSSession->recv_io, NULL) == SOCKET_ERROR)
+	{
+		if (::WSAGetLastError() != WSA_IO_PENDING)
+		{
+			GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "WSARecv failed on MainServer connection");
+			// 에러 발생 시 소켓 닫기
+			::closesocket(m_pMainSSession->hSocket);
+			delete m_pMainSSession;
+			m_pMainSSession = nullptr;
+			return false;
+		}
 	}
 
 	//Connect 성공시 서버 등록 요청
@@ -191,50 +221,62 @@ void Mainthread::CompleteConnectMainServer()
 
 DWORD WINAPI Mainthread::UserAcceptLoop()
 {
-	LPWSAOVERLAPPED	pWol = NULL;
-	DWORD			dwReceiveSize, dwFlag;
 	USERSESSION* pNewUser;
-	int				nAddrSize = sizeof(SOCKADDR);
-	WSABUF			wsaBuf;
+	int					nAddrSize = sizeof(SOCKADDR);
 	SOCKADDR		ClientAddr;
 	SOCKET			hClient;
-	int				nRecvResult = 0;
 
 	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_LoginS_User];
 
-	while ((hClient = ::accept(hTargetSocket,&ClientAddr, &nAddrSize)) != INVALID_SOCKET)
+	while (this->m_bRunning && (hClient = ::accept(hTargetSocket,&ClientAddr, &nAddrSize)) != INVALID_SOCKET)
 	{
 		puts("새 클라이언트가 연결됐습니다.");
-		::EnterCriticalSection(&m_cs);
-		m_UserList.push_back(hClient);
-		::LeaveCriticalSection(&m_cs);
+
 
 		//새 클라이언트에 대한 세션 객체 생성
 		pNewUser = new USERSESSION;
+		if (pNewUser == nullptr)
+		{
+			::closesocket(hClient);
+			continue;
+		}
+
 		::ZeroMemory(pNewUser, sizeof(USERSESSION));
 		pNewUser->hSocket = hClient;
 		pNewUser->eLine = NetLine::NetLine_LoginS_User;
 		pNewUser->hAddr = ClientAddr;
 
-		//비동기 수신 처리를 위한 OVERLAPPED 구조체 생성.
-		pWol = new WSAOVERLAPPED;
-		::ZeroMemory(pWol, sizeof(WSAOVERLAPPED));
+		HANDLE hIOCPResult = ::CreateIoCompletionPort((HANDLE)hClient, m_hIocp, (ULONG_PTR)pNewUser, 0);
 
-		//(연결된) 클라이언트 소켓 핸들을 IOCP에 연결.
-		::CreateIoCompletionPort((HANDLE)hClient, m_hIocp,
-			(ULONG_PTR)pNewUser,		//KEY!!!
-			0);
+		if (hIOCPResult == NULL)
+		{
+			::closesocket(hClient);
+			delete pNewUser;
+			continue;
+		}
 
-		dwReceiveSize = 0;
-		dwFlag = 0;
-		wsaBuf.buf = pNewUser->strRecvBuffer;
-		wsaBuf.len = sizeof(pNewUser->strRecvBuffer);
+		pNewUser->recv_io.opType = opType::IO_RECV;
+		pNewUser->recv_io.wsaBuf.buf = pNewUser->recv_io.buffer;
+		pNewUser->recv_io.wsaBuf.len = sizeof(pNewUser->recv_io.buffer);
+
+		::EnterCriticalSection(&m_cs);
+		m_UserList.push_back(hClient);
+		::LeaveCriticalSection(&m_cs);
 
 		//클라이언트가 보낸 정보를 비동기 수신한다.
-		nRecvResult = ::WSARecv(hClient, &wsaBuf, 1, &dwReceiveSize,
-			&dwFlag, pWol, NULL);
-		if (::WSAGetLastError() != WSA_IO_PENDING)
-			puts("ERROR: WSARecv() != WSA_IO_PENDING");
+		DWORD dwRecvBytes = 0;
+		DWORD dwFlag = 0;
+		if (::WSARecv(hClient, &pNewUser->recv_io.wsaBuf, 1, &dwRecvBytes, &dwFlag, &pNewUser->recv_io, NULL) == SOCKET_ERROR)
+		{
+			if (::WSAGetLastError() != WSA_IO_PENDING)
+			{
+				puts("ERROR: WSARecv() failed on new client connection.");
+				// Handle WSARecv failure
+				::closesocket(hClient);
+				delete pNewUser;
+				continue;
+			}
+		}
 	}
 
 	return 0;
@@ -256,91 +298,69 @@ DWORD WINAPI Mainthread::HeartBeatLoop()
 DWORD WINAPI Mainthread::ThreadComplete()
 {
 	DWORD			dwTransferredSize = 0;
-	DWORD			dwFlag = 0;
 	USERSESSION* pSession = NULL;
-	LPWSAOVERLAPPED	pWol = NULL;
-	BOOL			bResult;
+	IO_DATA*		pIOData = NULL;
+	BOOL				bResult;
 
 	GetLogManager().SystemLog(__FUNCTION__, __LINE__, "IOCP WorkerThread Start!!");
 	while (this->m_bRunning)
 	{
 		bResult = ::GetQueuedCompletionStatus(
-			m_hIocp,							//Dequeue할 IOCP 핸들.
-			&dwTransferredSize,			//수신한 데이터 크기.
-			(PULONG_PTR)&pSession,	//수신된 데이터가 저장된 메모리
-			&pWol,							//OVERLAPPED 구조체.
-			INFINITE);						//이벤트를 무한정 대기.
+			m_hIocp,								//Dequeue할 IOCP 핸들.
+			&dwTransferredSize,				//수신한 데이터 크기.
+			(PULONG_PTR)&pSession,		//수신된 데이터가 저장된 메모리
+			(LPOVERLAPPED*)&pIOData,	//OVERLAPPED 구조체.
+			INFINITE);							//이벤트를 무한정 대기.
 
-		if (bResult == TRUE)
+		if (bResult == TRUE && pIOData != nullptr)
 		{
-			//정상적인 경우.
-
-			/////////////////////////////////////////////////////////////
-			//1. 클라이언트가 소켓을 정상적으로 닫고 연결을 끊은 경우.
-			if (dwTransferredSize == 0)
+			if (pIOData->opType == opType::IO_SEND)
 			{
-				CloseClient(pSession);
-				delete pWol;
-				delete pSession;
-				GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Close Client Nomally.");
+				delete pIOData;
 			}
-
-			/////////////////////////////////////////////////////////////
-			//2. 클라이언트가 보낸 데이터를 수신한 경우.
-			else
+			else if (pIOData->opType == opType::IO_RECV)
 			{
-				GetPacketDispatcher().Dispatch(pSession->strRecvBuffer, dwTransferredSize, pSession);
-				memset(pSession->strRecvBuffer, 0, sizeof(pSession->strRecvBuffer));
-
-				//다시 IOCP에 등록.
-				DWORD dwReceiveSize = 0;
-				DWORD dwFlag = 0;
-				WSABUF wsaBuf = { 0 };
-				wsaBuf.buf = pSession->strRecvBuffer;
-				wsaBuf.len = sizeof(pSession->strRecvBuffer);
-
-				::WSARecv(
-					pSession->hSocket,	//클라이언트 소켓 핸들
-					&wsaBuf,			//WSABUF 구조체 배열의 주소
-					1,					//배열 요소의 개수
-					&dwReceiveSize,
-					&dwFlag,
-					pWol,
-					NULL);
-				if (::WSAGetLastError() != WSA_IO_PENDING)
+				//수신한 데이터가 0이면 연결 종료.
+				if (dwTransferredSize == 0)
 				{
-					GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "GQCS: ERROR: WSARecv()");
+					CloseClient(pSession);
+					delete pIOData;
+					delete pSession;
+					GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Close Client Nomally.");
+					continue;
 				}
-					
+
+				GetPacketDispatcher().Dispatch(pIOData->buffer, dwTransferredSize, pSession);
+				pIOData->wsaBuf.len = sizeof(pIOData->buffer);
+				DWORD dwRecvBytes = 0;
+				DWORD dwFlags = 0;
+				if (WSARecv(pSession->hSocket, &pSession->recv_io.wsaBuf, 1, &dwRecvBytes, &dwFlags, pIOData, NULL) == SOCKET_ERROR)
+				{
+					if (::WSAGetLastError() != WSA_IO_PENDING)
+						puts("\tGQCS: ERROR: WSARecv()");
+				}
 			}
 		}
 		else
 		{
 			//비정상적인 경우.
-
-			/////////////////////////////////////////////////////////////
-			//3. 완료 큐에서 완료 패킷을 꺼내지 못하고 반환한 경우.
-			if (pWol == NULL)
+			DWORD dwError = GetLastError();
+			if (pIOData != nullptr)
 			{
-				//IOCP 핸들이 닫힌 경우(서버를 종료하는 경우)도 해당된다.
-				puts("\tGQCS: IOCP 핸들이 닫혔습니다.");
-				break;
+				puts("Client terminated abnormally or I/O operation failed.");
+				CloseClient(pSession);
+				// pIOData가 동적 할당된 경우 여기서 해제
+				if (pIOData->opType == opType::IO_SEND)
+				{
+					delete pIOData;
+				}
 			}
-
-			/////////////////////////////////////////////////////////////
-			//4. 클라이언트가 비정상적으로 종료됐거나
-			//   서버가 먼저 연결을 종료한 경우.
 			else
 			{
-				if (pSession != NULL)
-				{
-					CloseClient(pSession);
-					delete pWol;
-					delete pSession;
-				}
-
-				puts("\tGQCS: 서버 종료 혹은 비정상적 연결 종료");
+				puts("ERROR: GetQueuedCompletionStatus() failed.");
+				break;
 			}
+			puts("\tGQCS: 서버 종료 혹은 비정상적 연결 종료");
 		}
 	}
 

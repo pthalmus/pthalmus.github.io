@@ -35,7 +35,6 @@ namespace NetLine {
 		NetLine_UserS_MemCachedS		=5,
 		NetLine_ChatS_User					=6,
 		NetLine_LoginS_User					=7,
-		NetLine_MemCachedS				=8,
 		eMAX										=255
 	};
 }
@@ -46,6 +45,17 @@ namespace SQLTYPE {
 		SQL_MEMBER							=1,
 		SQL_USER								=2,
 		eMAX										=255
+	};
+}
+
+namespace opType {
+	enum en
+	{
+		IO_RECV,
+		IO_SEND,
+		IO_ACCEPT,
+		IO_CONNECT,
+		eMAX
 	};
 }
 

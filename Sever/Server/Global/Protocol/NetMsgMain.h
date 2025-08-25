@@ -20,6 +20,7 @@ namespace NetMain
 	enum { eResult_Connect_FromMain = 1 };
 	struct result_connect_fromMain : public PACKET
 	{
+		size_t GetSize() override { return sizeof(result_connect_fromMain); }
 	};
 	////////////////////////////////////////////////////
 
@@ -27,6 +28,7 @@ namespace NetMain
 	enum { eRequest_Connect_FromLogin = 2 };
 	struct request_connect_fromLogin : public PACKET
 	{
+		size_t GetSize() override { return sizeof(request_connect_fromLogin); }
 	};
 	////////////////////////////////////////////////////
 
@@ -34,6 +36,7 @@ namespace NetMain
 	enum { eRequest_Connect_FromMemCached = 3 };
 	struct request_connect_fromMemCached : public PACKET
 	{
+		size_t GetSize() override { return sizeof(request_connect_fromMemCached); }
 	};
 	////////////////////////////////////////////////////
 
@@ -41,6 +44,7 @@ namespace NetMain
 	enum { eRequest_Connect_FromUserS = 4 };
 	struct request_connect_fromUserS : public PACKET
 	{
+		size_t GetSize() override { return sizeof(request_connect_fromUserS); }
 	};
 	////////////////////////////////////////////////////
 
@@ -48,6 +52,7 @@ namespace NetMain
 	enum { eRequest_Connect_FromChat = 5 };
 	struct request_connect_fromChat : public PACKET
 	{
+		size_t GetSize() override { return sizeof(request_connect_fromChat); }
 	};
 	////////////////////////////////////////////////////
 
@@ -55,6 +60,7 @@ namespace NetMain
 	enum { eInform_Heartbeat_FromLogin = 11 };
 	struct inform_heartbeat_fromLogin : public PACKET
 	{
+		size_t GetSize() override { return sizeof(inform_heartbeat_fromLogin); }
 	};
 	////////////////////////////////////////////////////
 
@@ -62,6 +68,7 @@ namespace NetMain
 	enum { eInform_Heartbeat_FromMemCached = 12 };
 	struct inform_heartbeat_fromMemCached : public PACKET
 	{
+		size_t GetSize() override { return sizeof(inform_heartbeat_fromMemCached); }
 	};
 	////////////////////////////////////////////////////
 
@@ -69,6 +76,7 @@ namespace NetMain
 	enum { eInform_Heartbeat_FromUserS = 13 };
 	struct inform_heartbeat_fromUserS : public PACKET
 	{
+		size_t GetSize() override { return sizeof(inform_heartbeat_fromUserS); }
 	};
 	////////////////////////////////////////////////////
 
@@ -76,6 +84,7 @@ namespace NetMain
 	enum { eInform_Heartbeat_FromChat = 14 };
 	struct inform_heartbeat_fromChat : public PACKET
 	{
+		size_t GetSize() override { return sizeof(inform_heartbeat_fromChat); }
 	};
 	////////////////////////////////////////////////////
 
@@ -83,6 +92,7 @@ namespace NetMain
 	enum { eRequest_DBInfo_FromMemCached = 21 };
 	struct request_dbinfo_fromMemCached : public PACKET
 	{
+		size_t GetSize() override { return sizeof(request_dbinfo_fromMemCached); }
 	};
 	////////////////////////////////////////////////////
 
@@ -94,6 +104,8 @@ namespace NetMain
 		char m_strDBID[20]; // DB ID
 		char m_strDBPW[20]; // DB PW
 		char m_strServer[30]; // Server IP
+
+        size_t GetSize() override  {  return sizeof(result_dbinfo_fromMain);  }
 	};
 	////////////////////////////////////////////////////
 

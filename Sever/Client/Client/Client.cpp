@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 #include <UserSocket.h>
 #include <LogManager.h>
+#include <Protocol/NetMsg.h>
 
 class MainClient
 {
@@ -51,7 +52,7 @@ bool LoadConfigSetting(MainClient* pClient)
 		return false;
 	}
 
-	pClient->m_nLoginSPort = GetPrivateProfileIntA("LoginServer", "PORT", 9973, strFilePath.c_str());
+	pClient->m_nLoginSPort = GetPrivateProfileIntA("LoginServer", "PORT", 10445, strFilePath.c_str());
 
 	return true;
 }
@@ -59,6 +60,13 @@ bool LoadConfigSetting(MainClient* pClient)
 DWORD WINAPI ThreadFunc(MainClient client)
 {
 	std::string strStream;
+	auto* pMsg = CREATE_PACKET(NetLogin::request_login_fromUser, NetLine::NetLine_LoginS_User, NetLogin::eRequest_Login_FromUser);
+	std::cout << "Enter User ID: ";
+	std::cin >> pMsg->szUserID;
+	std::cout << "Enter Password: ";
+	std::cin >> pMsg->szPassword;
+
+	WSASend(client.hSock, (LPWSABUF)&pMsg, sizeof(pMsg), nullptr, 0, nullptr, nullptr);
 	while (true)
 	{
 		std::cin >> strStream;

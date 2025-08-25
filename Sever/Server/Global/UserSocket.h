@@ -30,12 +30,52 @@ public:
         auto it = handlers_.find(key);
         if (it != handlers_.end())
         {
+            std::cout << "Find handler for ucType1=" << int(header->ucType1) << ", ucType2=" << int(header->ucType2) << "\n";
             it->second(header, pSession);
         }
         else
         {
             std::cout << "No handler for ucType1=" << int(header->ucType1) << ", ucType2=" << int(header->ucType2) << "\n";
         }
+    }
+    bool DispatchSend(USERSESSION* pSession, const char* pstrPacketData, size_t nPacketSize)
+    {
+        IO_DATA* pIOData = new IO_DATA;
+        if (pIOData == nullptr) {
+            return false;
+        }
+
+        // IO_DATA 구조체 초기화
+        ::ZeroMemory(pIOData, sizeof(IO_DATA));
+        pIOData->opType = opType::IO_SEND;
+
+        // 보낼 패킷 데이터를 IO_DATA의 버퍼에 복사합니다.
+        // 이 방식은 패킷의 크기가 작을 때 유용합니다.
+        // 큰 패킷의 경우, 버퍼를 따로 할당하고 포인터를 넘기는 것이 효율적일 수 있습니다.
+        memcpy(pIOData->buffer, pstrPacketData, nPacketSize);
+
+        // WSABUF 구조체 설정
+        pIOData->wsaBuf.buf = pIOData->buffer;
+        pIOData->wsaBuf.len = nPacketSize;
+
+        // WSASend 호출
+        DWORD dwBytesSent = 0;
+        DWORD dwFlags = 0;
+        int nResult = ::WSASend(pSession->hSocket, &pIOData->wsaBuf, 1, &dwBytesSent, dwFlags, pIOData, nullptr);
+
+        if (nResult == SOCKET_ERROR)
+        {
+            int nError = ::WSAGetLastError();
+            if (nError != WSA_IO_PENDING)
+            {
+                // 오류가 즉시 발생한 경우, 할당된 메모리를 해제합니다.
+                delete pIOData;
+                return false;
+            }
+            // WSA_IO_PENDING은 정상적인 비동기 동작이므로 아무것도 하지 않습니다.
+        }
+
+        return true;
     }
 
 private:

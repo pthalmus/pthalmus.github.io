@@ -20,6 +20,8 @@
 #include <Singleton.h>
 #include <DataBaseManager.h>
 
+#include <ThreadSafeQueue.h>
+
 #include <Protocol/NetMsg.h>
 #include <Protocol/NetMsgMain.h>
 #include <Protocol/NetMsgLogin.h>

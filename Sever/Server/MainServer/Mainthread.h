@@ -42,6 +42,7 @@ class Mainthread : public Singleton<Mainthread>
 	std::thread m_hDBThread;
 
 public:
+
 	DWORD WINAPI StartMainThread();
 	bool WINAPI Release(DWORD dwType);
 	bool StartLogSetting();
@@ -55,11 +56,18 @@ public:
 	DWORD WINAPI ChatSAcceptLoop();
 	DWORD WINAPI MemCachedSAcceptLoop();
 
-	void AddLoginServer(SOCKET pSession);
-
 	DWORD WINAPI ThreadComplete();
 
 	void CloseClient(USERSESSION* pSession);
+
+	void GetDBInfo(char* strDBID, size_t nDBIDSize,
+		char* strDBPW, size_t nDBPWSize,
+		char* strServer, size_t nServerSize)
+	{
+		strcpy_s(strDBID, nDBIDSize, m_strDBID.c_str());
+		strcpy_s(strDBPW, nDBPWSize, m_strDBPW.c_str());
+		strcpy_s(strServer, nServerSize, m_strServer.c_str());
+	}
 };
 
 #define GetMainThread() Mainthread::Instance()

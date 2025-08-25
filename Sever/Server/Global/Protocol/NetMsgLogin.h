@@ -25,6 +25,7 @@ namespace NetLogin
 		char szUserID[32]; // User ID
 		char szPassword[32]; // Password
 		char szClientVersion[16]; // Client Version
+		size_t GetSize() override { return sizeof(request_login_fromUser); }
 	};
 	////////////////////////////////////////////////////
 
@@ -33,6 +34,7 @@ namespace NetLogin
 	struct result_login_fromLogin : public PACKET
 	{
 		eNetResult eResult; // Result of the login attempt
+		size_t GetSize() override { return sizeof(result_login_fromLogin); }
 	};
 	////////////////////////////////////////////////////
 
@@ -40,6 +42,7 @@ namespace NetLogin
 	enum { eInform_Heartbeat_FromUser = 3 };
 	struct inform_heartbeat_fromUser : public PACKET
 	{
+		size_t GetSize() override { return sizeof(inform_heartbeat_fromUser); }
 	};
 	////////////////////////////////////////////////////
 
@@ -49,6 +52,7 @@ namespace NetLogin
 	{
 		char szUserID[32]; // User ID
 		char szPassword[32]; // Password
+		size_t GetSize() override { return sizeof(request_login_fromLogin); }
 	};
 	////////////////////////////////////////////////////
 
@@ -57,6 +61,7 @@ namespace NetLogin
 	struct result_login_fromMain : public PACKET
 	{
 		eNetResult eResult; // Result of the login attempt
+		size_t GetSize() override { return sizeof(result_login_fromMain); }
 	};
 	////////////////////////////////////////////////////
 
@@ -64,6 +69,9 @@ namespace NetLogin
 	enum { eRequest_Cert_FromLogin = 13 };
 	struct request_cert_fromLogin : public PACKET
 	{
+		char szUserID[32]; // User ID
+		char szCertKey[64]; // Certification Key
+		size_t GetSize() override { return sizeof(request_cert_fromLogin); }
 	};
 	////////////////////////////////////////////////////
 
@@ -72,6 +80,7 @@ namespace NetLogin
 	struct result_cert_fromMain : public PACKET
 	{
 		eNetResult eResult; // Result of the login attempt
+		size_t GetSize() override { return sizeof(result_cert_fromMain); }
 	};
 	////////////////////////////////////////////////////
 }

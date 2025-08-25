@@ -131,18 +131,23 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Client.cpp" />
-    <ClCompile Include="NetMsg.cpp" />
-    <ClCompile Include="NetMsgFuncLogin.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Server\Global\CreatDirectorys.h" />
+    <ClInclude Include="..\..\Server\Global\DataBaseManager.h" />
     <ClInclude Include="..\..\Server\Global\LogManager.h" />
     <ClInclude Include="..\..\Server\Global\NetWork.h" />
+    <ClInclude Include="..\..\Server\Global\Protocol\NetMsg.h" />
+    <ClInclude Include="..\..\Server\Global\Protocol\NetMsgChat.h" />
+    <ClInclude Include="..\..\Server\Global\Protocol\NetMsgLogin.h" />
+    <ClInclude Include="..\..\Server\Global\Protocol\NetMsgMain.h" />
+    <ClInclude Include="..\..\Server\Global\Protocol\NetMsgMemCached.h" />
+    <ClInclude Include="..\..\Server\Global\Protocol\NetMsgUser.h" />
+    <ClInclude Include="..\..\Server\Global\Protocol\NetMsgUserS.h" />
     <ClInclude Include="..\..\Server\Global\Singleton.h" />
+    <ClInclude Include="..\..\Server\Global\ThreadSafeQueue.h" />
     <ClInclude Include="..\..\Server\Global\Types.h" />
     <ClInclude Include="..\..\Server\Global\UserSocket.h" />
-    <ClInclude Include="NetMsg.h" />
-    <ClInclude Include="NetMsgLogin.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

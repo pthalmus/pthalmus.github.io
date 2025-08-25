@@ -31,6 +31,12 @@
     <Filter Include="DB">
       <UniqueIdentifier>{de967cec-83c9-47ed-b3da-fdf2b2721644}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DB\Thread">
+      <UniqueIdentifier>{850e5330-c7b4-4e38-8c0a-cfc84c61f69e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DB\Struct">
+      <UniqueIdentifier>{31954c04-f997-4479-8a0f-ab3c8456b322}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MemCachedServer.cpp">
@@ -46,7 +52,13 @@
       <Filter>NetMsgFunc\Source</Filter>
     </ClCompile>
     <ClCompile Include="DBThread.cpp">
-      <Filter>DB</Filter>
+      <Filter>DB\Thread</Filter>
+    </ClCompile>
+    <ClCompile Include="DBFunc.cpp">
+      <Filter>DB\Struct</Filter>
+    </ClCompile>
+    <ClCompile Include="NetMsgFuncMemCached.cpp">
+      <Filter>NetMsgFunc\Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -99,7 +111,13 @@
       <Filter>NetMsgFunc\Header</Filter>
     </ClInclude>
     <ClInclude Include="DBThread.h">
-      <Filter>DB</Filter>
+      <Filter>DB\Thread</Filter>
+    </ClInclude>
+    <ClInclude Include="DBFunc.h">
+      <Filter>DB\Struct</Filter>
+    </ClInclude>
+    <ClInclude Include="DBStruct.h">
+      <Filter>DB\Struct</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

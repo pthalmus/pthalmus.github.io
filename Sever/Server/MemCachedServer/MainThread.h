@@ -64,6 +64,8 @@ public:
 		m_strDBPW = dbPW;
 		m_strServer = server;
 	}
+
+	bool AddDBRequest(SQLDATA* pData);
 };
 
 #define GetMainThread() Mainthread::Instance()

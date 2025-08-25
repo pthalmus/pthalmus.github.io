@@ -3,7 +3,8 @@
 
 bool NetMsgFunc::Request_Connect_FromMemCached(NetMain::request_connect_fromMemCached* pBase, USERSESSION* pSession)
 {
-	return false;
+	GetPacketDispatcher().DispatchSend(pSession, (const char*)pBase, pBase->GetSize());
+	return true;
 }
 
 bool NetMsgFunc::Result_Connect_FromMain(NetMain::result_connect_fromMain* pBase, USERSESSION* pSession)
@@ -14,7 +15,7 @@ bool NetMsgFunc::Result_Connect_FromMain(NetMain::result_connect_fromMain* pBase
 
 bool NetMsgFunc::Inform_Heartbeat_FromMemCached(NetMain::inform_heartbeat_fromMemCached* pBase, USERSESSION* pSession)
 {
-	WSASend(pSession->hSocket, (LPWSABUF)&pBase, sizeof(pBase), NULL, 0, NULL, NULL);
+	GetPacketDispatcher().DispatchSend(pSession, (const char*)pBase, pBase->GetSize());
 	return true;
 }
 
@@ -29,12 +30,16 @@ bool NetMsgFunc::Request_DBInfo_FromMemCached(NetMain::request_dbinfo_fromMemCac
 		return false;
 	}
 	// Send the DB information request to the MainServer
-	WSASend(pSession->hSocket, (LPWSABUF)&pBase, sizeof(pBase), NULL, 0, NULL, NULL);
+	GetPacketDispatcher().DispatchSend(pSession, (const char*)pBase, pBase->GetSize());
 	return true;
 }
 
 bool NetMsgFunc::Result_DBInfo_FromMain(NetMain::result_dbinfo_fromMain* pBase, USERSESSION* pSession)
 {
+	std::cout<< "Received DB Info from MainServer: "
+		<< "DBID=" << pBase->m_strDBID << ", "
+		<< "DBPW=" << pBase->m_strDBPW << ", "
+		<< "Server=" << pBase->m_strServer << std::endl;
 	if (pBase == nullptr || pSession == nullptr)
 	{
 		return false;

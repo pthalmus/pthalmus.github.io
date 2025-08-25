@@ -20,8 +20,15 @@ typedef struct _SQLDATA
 	USERSESSION* pSession;
 	std::string		strSql;
 	virtual bool Do() { return false; } // Execute the SQL command
-	virtual bool Done() { return false; } // Optional cleanup after execution
+	virtual void Done() {} // Optional cleanup after execution
+	virtual std::string GetSql() const { return strSql; } // Get the SQL command string
 } SQLDATA;
+
+typedef struct _SQLRESULT {
+	bool bSuccess = false;
+	std::string strErrorMessage;
+	std::vector<std::vector<std::string>> Data;
+} SQLRESULT;
 
 class DataBaseManager : public Singleton<DataBaseManager>
 {
@@ -39,7 +46,7 @@ public:
 	bool Connect(const std::string& strDsn);
 	void Disconnect(const std::string& strDsn);
 	void DIsconnectALL();
-	bool Excute(const std::string& strDsn, const std::string& strSql);
+	_SQLRESULT Excute(const std::string& strDsn, const std::string& strSql);
 
 	bool addDynamicDsn(const std::string& server);
 	void printInstallerError();
