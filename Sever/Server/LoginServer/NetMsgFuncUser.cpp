@@ -21,13 +21,19 @@ bool NetMsgFunc::Request_Login_FromUser(NetLogin::request_login_fromUser* pBase,
 	NetLogin::request_login_fromLogin* pMsg = CREATE_PACKET(NetLogin::request_login_fromLogin, NetLine::NetLine_Main_LoginS, NetLogin::eRequest_Login_FromLogin);
 	strcpy_s(pMsg->szUserID, sizeof(pMsg->szUserID), pBase->szUserID);
 	strcpy_s(pMsg->szPassword, sizeof(pMsg->szPassword), pBase->szPassword);
-	WSASend(GetMainThread().GetMainServer()->hSocket, (LPWSABUF)&pMsg, sizeof(pMsg), NULL, 0, NULL, NULL);
+	GetPacketDispatcher().DispatchSend(GetMainThread().GetMainServer(), (const char*)pMsg, pMsg->GetSize());
 	return true;
 }
 
-bool NetMsgFunc::Result_Login_FromLogin(NetLogin::result_login_fromLogin* pBase, USERSESSION* pSession)
+bool NetMsgFunc::Result_Login_FromMain(NetLogin::result_login_fromMain* pBase, USERSESSION* pSession)
 {
 	return true;
+}
+
+
+bool NetMsgFunc::Result_Cert_FromMain(NetLogin::result_cert_fromMain* pBase, USERSESSION* pSession)
+{
+	return false;
 }
 
 bool NetMsgFunc::Inform_Heartbeat_FromUser(NetLogin::inform_heartbeat_fromUser* pBase, USERSESSION* pSession)

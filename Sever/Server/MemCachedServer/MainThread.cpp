@@ -173,11 +173,15 @@ bool Mainthread::LoadConfigSetting()
 
 	//Main Server Connection Config
 	bResult = GetPrivateProfileStringA("MainServer", "IP", "", strTemp, sizeof(strTemp), strFilePath.c_str());
-	if (bResult == false || strTemp[0] == '\0')
+	if (bResult)
 	{
+		m_strMainSIP = strTemp;
+	}
+	else
+	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Error Occur in Load MainServer Connection Config(IP)");
 		return false;
 	}
-	m_strMainSIP = strTemp;
 	m_nMainSPort = GetPrivateProfileIntA("MainServer", "PORT", 9979, strFilePath.c_str());
 	m_nUserSPort = GetPrivateProfileIntA("UserServer", "PORT", 10479, strFilePath.c_str());
 	return true;
@@ -320,7 +324,7 @@ void Mainthread::CloseClient(USERSESSION* pSession)
 	::EnterCriticalSection(&m_cs);
 	switch (pSession->eLine)
 	{
-	case NetLine::NetLine_UserS_MemCachedS:
+	case NetLine::NetLine_MemCachedS_UserS:
 		m_UserSList.remove(pSession->hSocket);
 		break;
 	default:

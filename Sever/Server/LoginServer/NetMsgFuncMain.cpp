@@ -7,7 +7,7 @@ bool NetMsgFunc::Request_Connect_FromLogin(NetMain::request_connect_fromLogin* p
 	{
 		return false;
 	}
-	if (pSession->eLine != NetLine::NetLine_Main_LoginS)
+	if (pSession->eLine != NetLine::NetLine_Main)
 	{
 		return false;
 	}
@@ -18,7 +18,8 @@ bool NetMsgFunc::Request_Connect_FromLogin(NetMain::request_connect_fromLogin* p
 
 bool NetMsgFunc::Result_Connect_FromMain(NetMain::result_connect_fromMain* pBase, USERSESSION* pSession)
 {
-	GetMainThread().HeartBeatLoop();
+	std::cout << "Connected to MainServer successfully!" << std::endl;
+	GetMainThread().StartHeartBeatLoop();
 	return true;
 }
 

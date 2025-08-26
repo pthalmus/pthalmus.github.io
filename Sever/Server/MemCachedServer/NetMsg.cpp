@@ -1,8 +1,11 @@
 #include <Protocol/NetMsg.h>
 
+// NetLine_Main
+AUTO_REGISTER_PACKET_HANDLER(NetLine_Main, NetMain::eRequest_Connect_FromMemCached, eRequest_Connect_FromMemCached, NetMain::request_connect_fromMemCached, NetMsgFunc::Request_Connect_FromMemCached)
+AUTO_REGISTER_PACKET_HANDLER(NetLine_Main, NetMain::eResult_Connect_FromMain, eResult_Connect_FromMain, NetMain::result_connect_fromMain, NetMsgFunc::Result_Connect_FromMain)
+AUTO_REGISTER_PACKET_HANDLER(NetLine_Main, NetMain::eInform_Heartbeat_FromMemCached, eInform_Heartbeat_FromMemCached, NetMain::inform_heartbeat_fromMemCached, NetMsgFunc::Inform_Heartbeat_FromMemCached)
+AUTO_REGISTER_PACKET_HANDLER(NetLine_Main, NetMain::eRequest_DBInfo_FromMemCached, eRequest_DBInfo_FromMemCached, NetMain::request_dbinfo_fromMemCached, NetMsgFunc::Request_DBInfo_FromMemCached)
+AUTO_REGISTER_PACKET_HANDLER(NetLine_Main, NetMain::eResult_DBInfo_FromMain, eResult_DBInfo_FromMain, NetMain::result_dbinfo_fromMain, NetMsgFunc::Result_DBInfo_FromMain)
+
 // NetLine_Main_MemCachedS
-AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_MemCachedS, NetMain::eRequest_Connect_FromMemCached, eRequest_Connect_FromMemCached, NetMain::request_connect_fromMemCached, NetMsgFunc::Request_Connect_FromMemCached)
-AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_MemCachedS, NetMain::eResult_Connect_FromMain, eResult_Connect_FromMain, NetMain::result_connect_fromMain, NetMsgFunc::Result_Connect_FromMain)
-AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_MemCachedS, NetMain::eInform_Heartbeat_FromMemCached, eInform_Heartbeat_FromMemCached, NetMain::inform_heartbeat_fromMemCached, NetMsgFunc::Inform_Heartbeat_FromMemCached)
-AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_MemCachedS, NetMain::eRequest_DBInfo_FromMemCached, eRequest_DBInfo_FromMemCached, NetMain::request_dbinfo_fromMemCached, NetMsgFunc::Request_DBInfo_FromMemCached)
-AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_MemCachedS, NetMain::eResult_DBInfo_FromMain, eResult_DBInfo_FromMain, NetMain::result_dbinfo_fromMain, NetMsgFunc::Result_DBInfo_FromMain)
+AUTO_REGISTER_PACKET_HANDLER(NetLine_MemCachedS_UserS, NetMemCached::eRequest_Connect_FromUserS, eRequest_Connect_FromUserS, NetMemCached::request_connect_fromUserS, NetMsgFunc::Request_Connect_FromUserS)

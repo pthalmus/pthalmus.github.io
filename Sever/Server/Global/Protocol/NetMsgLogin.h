@@ -76,7 +76,7 @@ namespace NetLogin
 	////////////////////////////////////////////////////
 
 	////////////////////////////////////////////////////
-	enum { eResult_Cert_FromMain = 12 };
+	enum { eResult_Cert_FromMain = 14 };
 	struct result_cert_fromMain : public PACKET
 	{
 		eNetResult eResult; // Result of the login attempt

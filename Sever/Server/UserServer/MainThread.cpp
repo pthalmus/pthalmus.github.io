@@ -1,48 +1,15 @@
-#include "Mainthread.h"
+#include "MainThread.h"
 
-DWORD WINAPI Mainthread::StartMainThread()
-{
-	m_bRunning = true;
-	if (StartLogSetting() == false)
-	{
-		return 0;
-	}
-
-	if (LoadConfigSetting() == false)
-	{
-		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Failed Load Config!!");
-		return 0;
-	}
-
-	if (StartNetSetting() == false)
-	{
-		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Failed Net Setting!!");
-		return 0;
-	}
-
-	if (StartConnectMainServer() == false)
-	{
-		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Failed MainServer Connection!!");
-		return 0;
-	}
-
-	while (m_bRunning)
-	{
-		Sleep(1);
-	}
-
-    return 0;
-}
-
-bool WINAPI Mainthread::Release(DWORD dwType)
+bool WINAPI MainThread::Release(DWORD dwType)
 {
 	if (dwType == CTRL_C_EVENT)
 	{
 		m_bRunning = false;
 		GetLogManager().Release();
 		delete m_pMainSSession;
+		delete m_pMemCachedSSession;
 		::DeleteCriticalSection(&m_cs);
-		
+
 		for (auto& iter : m_vIocpThread)
 		{
 			iter.join();
@@ -52,29 +19,89 @@ bool WINAPI Mainthread::Release(DWORD dwType)
 	return false;
 }
 
-bool Mainthread::StartLogSetting()
+void MainThread::CloseClient(USERSESSION* pSession)
+{
+	::shutdown(pSession->hSocket, SD_BOTH);
+	::closesocket(pSession->hSocket);
+
+	::EnterCriticalSection(&m_cs);
+	switch (pSession->eLine)
+	{
+	case NetLine::NetLine_UserS_User:
+		m_UserList.remove(pSession->hSocket);
+		break;
+	default:
+		m_UserList.remove(pSession->hSocket);
+		break;
+	}
+	::LeaveCriticalSection(&m_cs);
+}
+
+DWORD WINAPI MainThread::StartMainThread()
+{
+	m_bRunning = true;
+	if (StartLogSetting() == false)
+	{
+		return 0;
+	}
+	if (LoadConfigSetting() == false)
+	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Failed Load Config!!");
+		return 0;
+	}
+	if (StartNetSetting() == false)
+	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Failed Net Setting!!");
+		return 0;
+	}
+	if (StartConnectMainServer() == false)
+	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Failed MainServer Connection!!");
+		return 0;
+	}
+	if (StartConnectMemCachedServer() == false)
+	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Failed MemCachedServer Connection!!");
+		return 0;
+	}
+
+	std::cout << "Main Thread Start Complete!!" << std::endl;
+	while (m_bRunning)
+	{
+		Sleep(1);
+	}
+	return 0;
+}
+
+std::string MainThread::GetStrServerType()
+{
+	return std::string(magic_enum::enum_name(m_enType));
+}
+
+bool MainThread::StartLogSetting()
 {
 	std::string strFilePath = std::format("Log\\{0}\\", GetStrServerType());
 	if (CreateNestedDirectoryA(strFilePath) == false)
 	{
 		return false;
 	}
-
 	if (GetLogManager().init(strFilePath) == false)
 	{
 		return false;
 	}
 	return true;
+
+	return true;
 }
 
-bool Mainthread::LoadConfigSetting()
+bool MainThread::LoadConfigSetting()
 {
-	std::string strFilePath = "./Config/LoginServerConfig.ini";
+	std::string strFilePath = "./Config/MemCachedServerConfig.ini";
 	bool bResult = false;
 	char strTemp[256] = { 0, };
 	int nTemp = 0;
 
-	//MainServer Connection Config
+	//Main Server Connection Config
 	bResult = GetPrivateProfileStringA("MainServer", "IP", "", strTemp, sizeof(strTemp), strFilePath.c_str());
 	if (bResult)
 	{
@@ -85,16 +112,24 @@ bool Mainthread::LoadConfigSetting()
 		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Error Occur in Load MainServer Connection Config(IP)");
 		return false;
 	}
+	m_nMainSPort = GetPrivateProfileIntA("MainServer", "PORT", 9979, strFilePath.c_str());
 
-	m_nMainSPort = GetPrivateProfileIntA("MainServer", "PORT", 9973, strFilePath.c_str());
-
-	//User Connection Config
-	m_nUserPort = GetPrivateProfileIntA("User", "PORT", 10443, strFilePath.c_str());
-
+	bResult = GetPrivateProfileStringA("MemCachedServer", "IP", "", strTemp, sizeof(strTemp), strFilePath.c_str());
+	if (bResult)
+	{
+		m_strMemCachedSIP = strTemp;
+	}
+	else
+	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Error Occur in Load MainServer Connection Config(IP)");
+		return false;
+	}
+	m_nMemCachedSPort = GetPrivateProfileIntA("MemCachedServer", "PORT", 10479, strFilePath.c_str());
+	m_nMemCachedSPort = GetPrivateProfileIntA("User", "PORT", 10465, strFilePath.c_str());
 	return true;
 }
 
-bool Mainthread::StartNetSetting()
+bool MainThread::StartNetSetting()
 {
 	WSADATA wsa = { 0 };
 	if (::WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
@@ -118,7 +153,7 @@ bool Mainthread::StartNetSetting()
 	//IOCP 스레드들 생성
 	for (int i = 0; i < MAX_THREAD_CNT; ++i)
 	{
-		m_vIocpThread.emplace_back(&Mainthread::ThreadComplete, this);
+		m_vIocpThread.emplace_back(&MainThread::ThreadComplete, this);
 	}
 
 	SOCKET hListenUser = ::WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
@@ -129,7 +164,7 @@ bool Mainthread::StartNetSetting()
 	addrUser.sin_addr.S_un.S_addr = ::htonl(INADDR_ANY);
 	addrUser.sin_port = ::htons(m_nUserPort);
 
-	if (::bind(hListenUser,(SOCKADDR*)&addrUser, sizeof(SOCKADDR_IN)) == SOCKET_ERROR)
+	if (::bind(hListenUser, (SOCKADDR*)&addrUser, sizeof(SOCKADDR_IN)) == SOCKET_ERROR)
 	{
 		return false;
 	}
@@ -139,16 +174,16 @@ bool Mainthread::StartNetSetting()
 		return false;
 	}
 
-	m_umListenSocket.insert(std::make_pair(NetLine::NetLine_LoginS_User, hListenUser));
+	m_umListenSocket.insert(std::make_pair(NetLine::NetLine_UserS_User, hListenUser));
 
-	std::thread tAcceptUser(&Mainthread::UserAcceptLoop, this);
+	std::thread tAcceptUser(&MainThread::UserAcceptLoop, this);
 
 	tAcceptUser.detach();
 
 	return true;
 }
 
-bool Mainthread::StartConnectMainServer()
+bool MainThread::StartConnectMainServer()
 {
 	std::cout << "Try Connect MainServer..." << std::endl;
 
@@ -215,37 +250,24 @@ bool Mainthread::StartConnectMainServer()
 		}
 	}
 
-
 	//Connect 성공시 서버 등록 요청
-	NetMain::request_connect_fromLogin* pMsg = CREATE_PACKET(NetMain::request_connect_fromLogin, NetLine::NetLine_Main, NetMain::eRequest_Connect_FromLogin);
-	NetMsgFunc::Request_Connect_FromLogin(pMsg, m_pMainSSession);
+	NetMain::request_connect_fromUserS* pMsg = CREATE_PACKET(NetMain::request_connect_fromUserS, NetLine::NetLine_Main, NetMain::eRequest_Connect_FromUserS);
+	NetMsgFunc::Request_Connect_FromUserS(pMsg, m_pMainSSession);
 	return true;
 }
 
-std::string Mainthread::GetStrServerType()
-{
-	return std::string(magic_enum::enum_name(m_enType));
-}
-
-void Mainthread::CompleteConnectMainServer()
-{
-	std::thread tHeartBeat(&Mainthread::HeartBeatLoop, this);
-	tHeartBeat.detach();
-}
-
-DWORD WINAPI Mainthread::UserAcceptLoop()
+DWORD WINAPI MainThread::UserAcceptLoop()
 {
 	USERSESSION* pNewUser;
 	int					nAddrSize = sizeof(SOCKADDR);
 	SOCKADDR		ClientAddr;
 	SOCKET			hClient;
 
-	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_LoginS_User];
+	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_UserS_User];
 
-	while (this->m_bRunning && (hClient = ::accept(hTargetSocket,&ClientAddr, &nAddrSize)) != INVALID_SOCKET)
+	while (this->m_bRunning && (hClient = ::accept(hTargetSocket, &ClientAddr, &nAddrSize)) != INVALID_SOCKET)
 	{
 		puts("새 클라이언트가 연결됐습니다.");
-
 
 		//새 클라이언트에 대한 세션 객체 생성
 		pNewUser = new USERSESSION;
@@ -257,7 +279,7 @@ DWORD WINAPI Mainthread::UserAcceptLoop()
 
 		::ZeroMemory(pNewUser, sizeof(USERSESSION));
 		pNewUser->hSocket = hClient;
-		pNewUser->eLine = NetLine::NetLine_LoginS_User;
+		pNewUser->eLine = NetLine::NetLine_UserS_User;
 		pNewUser->hAddr = ClientAddr;
 
 		HANDLE hIOCPResult = ::CreateIoCompletionPort((HANDLE)hClient, m_hIocp, (ULONG_PTR)pNewUser, 0);
@@ -296,30 +318,102 @@ DWORD WINAPI Mainthread::UserAcceptLoop()
 	return 0;
 }
 
-void Mainthread::StartHeartBeatLoop()
+void MainThread::CompleteConnectMainServer()
 {
-	std::thread tHeartBeat(&Mainthread::HeartBeatLoop, this);
+	std::thread tHeartBeat(&MainThread::HeartBeatLoop, this);
 	tHeartBeat.detach();
 }
 
-DWORD WINAPI Mainthread::HeartBeatLoop()
+DWORD WINAPI MainThread::HeartBeatLoop()
 {
-	NetMain::inform_heartbeat_fromLogin* pMsg = CREATE_PACKET(NetMain::inform_heartbeat_fromLogin, NetLine::NetLine_Main, NetMain::eInform_Heartbeat_FromLogin);
+	NetMain::inform_heartbeat_fromUserS* pMsg = CREATE_PACKET(NetMain::inform_heartbeat_fromUserS, NetLine::NetLine_Main, NetMain::eInform_Heartbeat_FromUserS);
 	while (m_bRunning)
 	{
-		NetMsgFunc::Inform_Heartbeat_FromLogin(pMsg, m_pMainSSession);
-		std::this_thread::sleep_for(std::chrono::seconds(60));
+		NetMsgFunc::Inform_Heartbeat_FromUserS(pMsg, m_pMainSSession);
+		std::this_thread::sleep_for(std::chrono::seconds(600));
 	}
-
 	delete pMsg;
 	return 0;
 }
 
-DWORD WINAPI Mainthread::ThreadComplete()
+bool MainThread::StartConnectMemCachedServer()
+{
+	std::cout << "Try Connect MainServer..." << std::endl;
+
+	m_pMemCachedSSession = new USERSESSION();
+	m_pMemCachedSSession->eLine = NetLine::NetLine_MemCachedS_UserS;
+
+	// recv_io 멤버 초기화
+	ZeroMemory(&m_pMemCachedSSession->recv_io, sizeof(IO_DATA));
+	m_pMemCachedSSession->recv_io.opType = opType::IO_RECV;
+	m_pMemCachedSSession->recv_io.wsaBuf.buf = m_pMemCachedSSession->recv_io.buffer;
+	m_pMemCachedSSession->recv_io.wsaBuf.len = sizeof(m_pMemCachedSSession->recv_io.buffer);
+
+	m_pMemCachedSSession->hSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
+	if (m_pMemCachedSSession->hSocket == INVALID_SOCKET)
+	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Can Not Create MemCachedServer Socket");
+		delete m_pMemCachedSSession;
+		m_pMemCachedSSession = nullptr;
+		return false;
+	}
+
+	HANDLE hIOCPResult = ::CreateIoCompletionPort((HANDLE)m_pMemCachedSSession->hSocket, m_hIocp, (ULONG_PTR)m_pMemCachedSSession, 0);
+	if (hIOCPResult == NULL)
+	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Can Not Associate socket with IOCP");
+		::closesocket(m_pMemCachedSSession->hSocket);
+		delete m_pMemCachedSSession;
+		m_pMemCachedSSession = nullptr;
+		return false;
+	}
+
+	// 포트 바인딩 및 연결
+	SOCKADDR_IN svraddr = { 0 };
+	svraddr.sin_family = AF_INET;
+	svraddr.sin_port = htons(m_nMemCachedSPort);
+	if (inet_pton(AF_INET, m_strMemCachedSIP.c_str(), &svraddr.sin_addr.S_un.S_addr) != 1)
+	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Main Server IP Convert error!!");
+		::closesocket(m_pMemCachedSSession->hSocket);
+		delete m_pMemCachedSSession;
+		m_pMemCachedSSession = nullptr;
+		return false;
+	}
+	if (::connect(m_pMemCachedSSession->hSocket, (SOCKADDR*)&svraddr, sizeof(svraddr)) == SOCKET_ERROR)
+	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Can Not Connect MainServer");
+		::closesocket(m_pMemCachedSSession->hSocket);
+		delete m_pMemCachedSSession;
+		m_pMemCachedSSession = nullptr;
+		return false;
+	}
+
+	DWORD dwRecvBytes = 0;
+	DWORD dwFlags = 0;
+	if (::WSARecv(m_pMemCachedSSession->hSocket, &m_pMemCachedSSession->recv_io.wsaBuf, 1, &dwRecvBytes, &dwFlags, &m_pMemCachedSSession->recv_io, NULL) == SOCKET_ERROR)
+	{
+		if (::WSAGetLastError() != WSA_IO_PENDING)
+		{
+			GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "WSARecv failed on MainServer connection");
+			::closesocket(m_pMemCachedSSession->hSocket);
+			delete m_pMemCachedSSession;
+			m_pMemCachedSSession = nullptr;
+			return false;
+		}
+	}
+
+	//Connect 성공시 서버 등록 요청
+	NetMemCached::request_connect_fromUserS* pMsg = CREATE_PACKET(NetMemCached::request_connect_fromUserS, NetLine::NetLine_MemCachedS_UserS, NetMemCached::eRequest_Connect_FromUserS);
+	NetMsgFunc::Request_Connect_FromUserS(pMsg, m_pMemCachedSSession);
+	return true;
+}
+
+DWORD WINAPI MainThread::ThreadComplete()
 {
 	DWORD			dwTransferredSize = 0;
 	USERSESSION* pSession = NULL;
-	IO_DATA*		pIOData = NULL;
+	IO_DATA* pIOData = NULL;
 	BOOL				bResult;
 
 	GetLogManager().SystemLog(__FUNCTION__, __LINE__, "IOCP WorkerThread Start!!");
@@ -387,27 +481,3 @@ DWORD WINAPI Mainthread::ThreadComplete()
 	puts("[IOCP 작업자 스레드 종료]");
 	return 0;
 }
-
-void Mainthread::CloseClient(USERSESSION* pSession)
-{
-	::shutdown(pSession->hSocket, SD_BOTH);
-	::closesocket(pSession->hSocket);
-
-	::EnterCriticalSection(&m_cs);
-	switch (pSession->eLine)
-	{
-	case NetLine::NetLine_LoginS_User:
-		m_UserList.remove(pSession->hSocket);
-		break;
-	default:
-		m_UserList.remove(pSession->hSocket);
-		break;
-	}
-	::LeaveCriticalSection(&m_cs);
-}
-
-USERSESSION* Mainthread::GetMainServer()
-{
-	return m_pMainSSession;
-}
-

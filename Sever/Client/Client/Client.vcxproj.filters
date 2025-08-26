@@ -20,6 +20,9 @@
     <ClCompile Include="Client.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="MainClient.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Server\Global\CreatDirectorys.h">
@@ -66,6 +69,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Server\Global\Protocol\NetMsgUserS.h">
       <Filter>Global\Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="MainClient.h">
+      <Filter>소스 파일</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

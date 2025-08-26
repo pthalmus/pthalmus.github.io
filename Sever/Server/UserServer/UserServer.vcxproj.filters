@@ -18,10 +18,28 @@
     <Filter Include="NetMsgFunc\Source">
       <UniqueIdentifier>{0f16a5e9-b03a-45d4-b703-b2017c0104c1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Global">
+      <UniqueIdentifier>{5e2d2fa6-0194-47f5-85aa-6913eba7f31f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MainThread">
+      <UniqueIdentifier>{8d2b4aef-59be-4c05-a916-9d5922794cd7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="UserServer.cpp">
       <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MainThread.cpp">
+      <Filter>MainThread</Filter>
+    </ClCompile>
+    <ClCompile Include="NetMsg.cpp">
+      <Filter>NetMsgFunc\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="NetMsgFuncMain.cpp">
+      <Filter>NetMsgFunc\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="NetMsgFuncMemCached.cpp">
+      <Filter>NetMsgFunc\Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -45,6 +63,9 @@
     </ClInclude>
     <ClInclude Include="..\Global\Protocol\NetMsgUserS.h">
       <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="MainThread.h">
+      <Filter>MainThread</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

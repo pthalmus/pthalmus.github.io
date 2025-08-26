@@ -9,7 +9,9 @@ LogManager::LogManager()
 
 bool LogManager::init(std::string pstrLogPath)
 {
-	this->strBaseLogPath = pstrLogPath;
+	auto now = std::chrono::system_clock::now();
+	std::string formatted_time = std::format("{:%Y-%m-%d_%H-%M}", now);
+	this->strBaseLogPath = pstrLogPath + formatted_time.c_str() + "\\";
 
 	if (CreateNestedDirectoryA(strBaseLogPath + "SystemLog\\") == false)
 	{
@@ -21,9 +23,9 @@ bool LogManager::init(std::string pstrLogPath)
 		return false;
 	}
 	std::string strSystemLogPath = strBaseLogPath + "SystemLog\\SystemLog.txt";
-	hSystemLog = CreateFileA(strSystemLogPath.c_str(), GENERIC_WRITE, FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	hSystemLog = CreateFileA(strSystemLogPath.c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	std::string strErrorLogPath = strBaseLogPath + "ErrorLog\\ErrorLog.txt";
-	hErrorLog = CreateFileA(strErrorLogPath.c_str(), GENERIC_WRITE, FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	hErrorLog = CreateFileA(strErrorLogPath.c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if (hSystemLog == INVALID_HANDLE_VALUE || hErrorLog == INVALID_HANDLE_VALUE)
 	{
@@ -63,8 +65,12 @@ void LogManager::ErrorLog(const char* pstrfunc, int nRow, const char* pstrData, 
 	LogData->strLogPath = strBaseLogPath + "\\ErrorLog\\";
 	LogData->eLogType = LogType::en::ErrorLog;
 
+	auto now = std::chrono::system_clock::now();
+	auto now_seconds = std::chrono::floor<std::chrono::seconds>(now);
+	std::string formatted_time = std::format("{:%Y-%m-%d %H:%M:%S}", now_seconds);
+
 	// msgBuf를 로그 메시지로 사용
-	LogData->strLogData = std::format("[{}:{}] {}\n", pstrfunc, nRow, msgBuf);
+	LogData->strLogData = std::format("[{}][{}:{}] {}\n", formatted_time, pstrfunc, nRow, msgBuf);
 
 	std::lock_guard<std::mutex> lg(m_mutex);
 	qLog.push(LogData);
@@ -83,8 +89,12 @@ void LogManager::SystemLog(const char* pstrfunc, int nRow, const char* pstrData,
 	LogData->strLogPath = strBaseLogPath + "\\SystemLog\\";
 	LogData->eLogType = LogType::en::SystemLog;
 
+	auto now = std::chrono::system_clock::now();
+	auto now_seconds = std::chrono::floor<std::chrono::seconds>(now);
+	std::string formatted_time = std::format("{:%Y-%m-%d %H:%M:%S}", now_seconds);
+
 	// msgBuf를 로그 메시지로 사용
-	LogData->strLogData = std::format("[{}:{}] {}\n", pstrfunc, nRow, msgBuf);
+	LogData->strLogData = std::format("[{}][{}:{}] {}\n", formatted_time,pstrfunc, nRow, msgBuf);
 
 	std::lock_guard<std::mutex> lg(m_mutex);
 	qLog.push(LogData);

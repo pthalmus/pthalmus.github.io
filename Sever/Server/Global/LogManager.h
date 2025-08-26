@@ -10,6 +10,7 @@
 
 #include <CreatDirectorys.h>
 #include <Types.h>
+#include <chrono>
 
 struct sLogData
 {
@@ -27,6 +28,7 @@ class LogManager : public Singleton<LogManager>
 	HANDLE hErrorLog;
 
 	bool		m_bRunning;
+
 public:
 	LogManager();
 	bool init(std::string pstrLogPath);

@@ -2,14 +2,8 @@
 #include <UserSocket.h>
 #include <LogManager.h>
 #include <Protocol/NetMsg.h>
+#include "MainClient.h"
 
-class MainClient
-{
-public:
-    SOCKET		hSock;
-	std::string	m_strLoginSIP;
-	int				m_nLoginSPort;
-};
 
 bool StartLogSetting()
 {
@@ -52,6 +46,17 @@ bool LoadConfigSetting(MainClient* pClient)
 		return false;
 	}
 
+	bResult = GetPrivateProfileStringA("Client", "VERSION", "", strTemp, sizeof(strTemp), strFilePath.c_str());
+	if (bResult)
+	{
+		pClient->m_strVersion = strTemp;
+	}
+	else
+	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Error Occur in Load ClientVersion(IP)");
+		return false;
+	}
+
 	pClient->m_nLoginSPort = GetPrivateProfileIntA("LoginServer", "PORT", 10445, strFilePath.c_str());
 
 	return true;
@@ -66,7 +71,9 @@ DWORD WINAPI ThreadFunc(MainClient client)
 	std::cout << "Enter Password: ";
 	std::cin >> pMsg->szPassword;
 
-	WSASend(client.hSock, (LPWSABUF)&pMsg, sizeof(pMsg), nullptr, 0, nullptr, nullptr);
+	strcpy_s(pMsg->szClientVersion, client.m_strVersion.c_str());
+
+	GetPacketDispatcher().DispatchSend(client.m_pSession, (char*)pMsg, pMsg->GetSize());
 	while (true)
 	{
 		std::cin >> strStream;
@@ -98,27 +105,21 @@ int main()
 	{
 		return false;
 	}
-
-	client.hSock = ::socket(AF_INET, SOCK_STREAM, 0);
-	if (client.hSock == INVALID_SOCKET)
-		ErrorHandler("소켓을 생성할 수 없습니다.");
-
-	//포트 바인딩 및 연결
-	SOCKADDR_IN	svraddr = { 0 };
-	svraddr.sin_family = AF_INET;
-	svraddr.sin_port = htons(client.m_nLoginSPort);
-	if (inet_pton(AF_INET, client.m_strLoginSIP.c_str(), &svraddr.sin_addr.S_un.S_addr) != 1)
+	if(client.StartNetwork() == false)
 	{
-		ErrorHandler("소켓을 생성할 수 없습니다.");
+		ErrorHandler("Can not Start Network");
+		return 0;
 	}
-	if (::connect(client.hSock,
-		(SOCKADDR*)&svraddr, sizeof(svraddr)) == SOCKET_ERROR)
-		ErrorHandler("서버에 연결할 수 없습니다.");
+	if(client.ConnectToLoginServer() == false)
+	{
+		ErrorHandler("Can not Connect To LoginServer");
+		return 0;
+	}
 
 	std::thread t(ThreadFunc, client);
 	t.join();
 
-	::closesocket(client.hSock);
+	::closesocket(client.m_pSession->hSocket);
 	::WSACleanup();
 	return 0;
 }

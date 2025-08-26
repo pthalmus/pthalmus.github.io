@@ -25,3 +25,10 @@ bool NetMsgFunc::Request_Login_FromMain(NetMemCached::request_login_fromMain* pB
 	GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Login request from MainServer: %s", pBase->szUserID);
 	return true;
 }
+
+bool NetMsgFunc::Request_Connect_FromUserS(NetMemCached::request_connect_fromUserS* pBase, USERSESSION* pSession)
+{
+	auto* pMsg = CREATE_PACKET(NetMemCached::result_connect_fromMemCached, NetLine::NetLine_Main_MemCachedS, NetMemCached::eResult_Connect_FromMemCached);
+	GetPacketDispatcher().DispatchSend(pSession, (const char*)pMsg, pMsg->GetSize());
+	return true;
+}

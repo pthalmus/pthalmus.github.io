@@ -105,10 +105,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>../Global;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>../Global/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>GlobalLib.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -126,6 +130,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="MainThread.cpp" />
+    <ClCompile Include="NetMsg.cpp" />
+    <ClCompile Include="NetMsgFuncMain.cpp" />
+    <ClCompile Include="NetMsgFuncMemCached.cpp" />
     <ClCompile Include="UserServer.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -136,6 +144,7 @@
     <ClInclude Include="..\Global\Protocol\NetMsgMemCached.h" />
     <ClInclude Include="..\Global\Protocol\NetMsgUser.h" />
     <ClInclude Include="..\Global\Protocol\NetMsgUserS.h" />
+    <ClInclude Include="MainThread.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

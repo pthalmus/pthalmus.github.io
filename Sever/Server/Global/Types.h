@@ -27,14 +27,14 @@ namespace LogType
 namespace NetLine {
 	enum en
 	{
-		NetLine_Main_LoginS					=0,
-		NetLine_Main_UserS					=1,
-		NetLine_Main_ChatS					=2,
-		NetLine_Main_MemCachedS		=3,
-		NetLine_UserS_User					=4,
-		NetLine_UserS_MemCachedS		=5,
-		NetLine_ChatS_User					=6,
-		NetLine_LoginS_User					=7,
+		NetLine_Main							= 0, // NetMsgMain 용 라인
+		NetLine_Main_LoginS					= 1, // NetMsgLogin 용 라인
+		NetLine_Main_UserS					= 2, // NetMsgUser 용 라인
+		NetLine_Main_ChatS					= 3, // NetMsgChat 용 라인
+		NetLine_Main_MemCachedS		= 4, // NetMsgMemCached 용 라인
+		NetLine_LoginS_User					= 11, // LoginServer - User 용 라인
+		NetLine_UserS_User					= 12, // UserServer - User  용 라인
+		NetLine_MemCachedS_UserS		= 21, // MemCachedServer - UserServer 용 라인
 		eMAX										=255
 	};
 }

@@ -56,7 +56,7 @@ public:
 
         // WSABUF 구조체 설정
         pIOData->wsaBuf.buf = pIOData->buffer;
-        pIOData->wsaBuf.len = nPacketSize;
+        pIOData->wsaBuf.len = (ULONG)nPacketSize;
 
         // WSASend 호출
         DWORD dwBytesSent = 0;
