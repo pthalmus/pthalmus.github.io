@@ -14,7 +14,8 @@ bool NetMsgFunc::Request_Connect_FromMemCached(NetMain::request_connect_fromMemC
 		return false;
 	}
 
-	NetMain::result_connect_fromMain* pMsg = CREATE_PACKET(NetMain::result_connect_fromMain, NetLine::NetLine_Main_MemCachedS, NetMain::eResult_Connect_FromMain);
+	GetMainThread().AddServerList(pSession->hSocket, NetLine::NetLine_Main_MemCachedS);
+	NetMain::result_connect_fromMain* pMsg = CREATE_PACKET(NetMain::result_connect_fromMain, NetLine::NetLine_Main, NetMain::eResult_Connect_FromMain);
 	GetPacketDispatcher().DispatchSend(pSession, (const char*)pMsg, pMsg->GetSize());
 	return true;
 }
@@ -29,7 +30,7 @@ bool NetMsgFunc::Request_DBInfo_FromMemCached(NetMain::request_dbinfo_fromMemCac
 	{
 		return false;
 	}
-	auto* pMsg = CREATE_PACKET(NetMain::result_dbinfo_fromMain, NetLine::NetLine_Main_MemCachedS, NetMain::eResult_DBInfo_FromMain);
+	auto* pMsg = CREATE_PACKET(NetMain::result_dbinfo_fromMain, NetLine::NetLine_Main, NetMain::eResult_DBInfo_FromMain);
 	GetMainThread().GetDBInfo(pMsg->m_strDBID, sizeof(pMsg->m_strDBID), pMsg->m_strDBPW, sizeof(pMsg->m_strDBPW), pMsg->m_strServer, sizeof(pMsg->m_strServer));
 	GetPacketDispatcher().DispatchSend(pSession, (const char*)pMsg, pMsg->GetSize());
 	return true;

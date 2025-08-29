@@ -5,31 +5,40 @@
 #endif
 
 #include <winsock2.h>
-#include <WS2tcpip.h>
-#pragma comment(lib, "ws2_32")
+#include <mswsock.h>
+#include <ws2tcpip.h>
+#pragma comment(lib, "ws2_32.lib")
+
 #include <Types.h>
+#include <rpc.h>
+#pragma comment(lib, "Rpcrt4.lib")
 
 typedef struct _IO_DATA : public WSAOVERLAPPED
 {
-    WSABUF              wsaBuf;      // 비동기 I/O를 위한 버퍼 포인터와 크기 정보
-    opType::en           opType;      // 작업 종류를 식별 (예: RECV, SEND)
-    char                    buffer[8192]; // 실제 데이터가 저장될 버퍼
+	WSABUF				wsaBuf;      // 비동기 I/O를 위한 버퍼 포인터와 크기 정보
+	opType::en			opType;      // 작업 종류를 식별 (예: RECV, SEND)
+	SOCKET				hSocket;    // AcceptEx를 위한 소켓 핸들
+	NetLine::en			eLine;
+	char					buffer[8192]; // 실제 데이터가 저장될 버퍼
 } IO_DATA;
 
 typedef struct _USERSESSION
 {
-    SOCKET		    hSocket;
-    NetLine::en	    eLine;
-    SOCKADDR     hAddr;
-
-    IO_DATA         recv_io;
-    IO_DATA*        send_io;
+	SOCKET			hSocket;
+	NetLine::en		eLine;
+	SOCKADDR		hAddr;
+	UUID				UUID;
+	
+	IO_DATA			recv_io;
+	IO_DATA*		send_io;
+	IO_DATA			connect_io;
+	IO_DATA			accept_io;
 } USERSESSION;
 
 struct PACKET
 {
-    uint8_t ucType1;
-    uint8_t ucType2;
+	uint8_t ucType1;
+	uint8_t ucType2;
 
-    virtual size_t GetSize() { return sizeof(PACKET); }
+	virtual size_t GetSize() { return sizeof(PACKET); }
 };

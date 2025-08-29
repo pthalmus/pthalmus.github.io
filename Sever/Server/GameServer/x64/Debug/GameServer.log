@@ -1,0 +1,10 @@
+﻿  GameServer.cpp
+  LocalThread.cpp
+  MainThread.cpp
+  NetMsg.cpp
+  NetMsgFuncMain.cpp
+  NetMsgFuncUser.cpp
+  코드를 생성하고 있습니다...
+  GameServer.vcxproj -> C:\Users\s9342\OneDrive\Desktop\Git\home\pthalmus.github.io\Sever\Release\GameServer.exe
+  'pwsh.exe'은(는) 내부 또는 외부 명령, 실행할 수 있는 프로그램, 또는
+  배치 파일이 아닙니다.

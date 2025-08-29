@@ -2,8 +2,12 @@
 
 // NetLine_Main
 AUTO_REGISTER_PACKET_HANDLER(NetLine_Main, NetMain::eRequest_Connect_FromLogin, eRequest_Connect_FromLogin, NetMain::request_connect_fromLogin, NetMsgFunc::Request_Connect_FromLogin)
-AUTO_REGISTER_PACKET_HANDLER(NetLine_Main, NetMain::eInform_Heartbeat_FromLogin, eInform_Heartbeat_FromLogin, NetMain::inform_heartbeat_fromLogin, NetMsgFunc::Inform_Heartbeat_FromLogin)
 AUTO_REGISTER_PACKET_HANDLER(NetLine_Main, NetMain::eRequest_Connect_FromMemCached, eRequest_Connect_FromMemCached, NetMain::request_connect_fromMemCached, NetMsgFunc::Request_Connect_FromMemCached)
+AUTO_REGISTER_PACKET_HANDLER(NetLine_Main, NetMain::eRequest_Connect_FromChat, eRequest_Connect_FromChat, NetMain::request_connect_fromChat, NetMsgFunc::Request_Connect_FromChat)
+AUTO_REGISTER_PACKET_HANDLER(NetLine_Main, NetMain::eRequest_Connect_FromGame, eRequest_Connect_FromGame, NetMain::request_connect_fromGame, NetMsgFunc::Request_Connect_FromGame)
+AUTO_REGISTER_PACKET_HANDLER(NetLine_Main, NetMain::eRequest_Connect_FromUserS, eRequest_Connect_FromUserS, NetMain::request_connect_fromUserS, NetMsgFunc::Request_Connect_FromUserS)
+
+AUTO_REGISTER_PACKET_HANDLER(NetLine_Main, NetMain::eInform_Heartbeat_FromLogin, eInform_Heartbeat_FromLogin, NetMain::inform_heartbeat_fromLogin, NetMsgFunc::Inform_Heartbeat_FromLogin)
 AUTO_REGISTER_PACKET_HANDLER(NetLine_Main, NetMain::eInform_Heartbeat_FromMemCached, eInform_Heartbeat_FromMemCached, NetMain::inform_heartbeat_fromMemCached, NetMsgFunc::Inform_Heartbeat_FromMemCached)
 AUTO_REGISTER_PACKET_HANDLER(NetLine_Main, NetMain::eRequest_DBInfo_FromMemCached, eRequest_DBInfo_FromMemCached, NetMain::request_dbinfo_fromMemCached, NetMsgFunc::Request_DBInfo_FromMemCached)
 

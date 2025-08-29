@@ -72,7 +72,6 @@ public:
                 delete pIOData;
                 return false;
             }
-            // WSA_IO_PENDING은 정상적인 비동기 동작이므로 아무것도 하지 않습니다.
         }
 
         return true;

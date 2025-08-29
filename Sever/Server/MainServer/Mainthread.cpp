@@ -2,30 +2,34 @@
 #include "MainThread.h"
 #include "Mainthread.h"
 
-DWORD WINAPI Mainthread::StartMainThread()
+void MainThread::StartMainThread()
 {
 	m_bRunning = true;
 	if (StartLogSetting() == false)
 	{
-		return 0;
+		m_bRunning = false;
+		return;
 	}
 
 	if (LoadConfigSetting() == false)
 	{
 		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Failed Load Config!!");
-		return 0;
+		m_bRunning = false;
+		return;
 	}
 
 	if (StartNetSetting() == false)
 	{
 		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Failed Net Setting!!");
-		return 0;
+		m_bRunning = false;
+		return;
 	}
 
 	if (StartDBConnection() == false)
 	{
 		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Failed DB Setting!!");
-		return 0;
+		m_bRunning = false;
+		return;
 	}
 
 	std::cout << "Main Thread Start Complete!!" << std::endl;
@@ -33,28 +37,65 @@ DWORD WINAPI Mainthread::StartMainThread()
 	{
 		Sleep(1);
 	}
-
-    return 0;
 }
 
-bool WINAPI Mainthread::Release(DWORD dwType)
+bool WINAPI MainThread::Release(DWORD dwType)
 {
 	if (dwType == CTRL_C_EVENT)
 	{
 		m_bRunning = false;
 		GetLogManager().Release();
 		::DeleteCriticalSection(&m_cs);
-		
-		for (auto& iter : m_vIocpThread)
+
+		//1. IOCP Thread 종료
+		if (m_hIocp)
 		{
-			iter.join();
+			//IOCP 핸들 닫기
+			::CloseHandle(m_hIocp);
+			m_hIocp = NULL;
 		}
+		//2. Listen Socket 종료
+		for (auto& iter : m_umListenSocket)
+		{
+			::closesocket(iter.second);
+		}
+		m_umListenSocket.clear();
+
+		//3. Socket 리스트 정리
+		for (auto& iter : m_UserSList)
+		{
+			::shutdown(iter, SD_BOTH);
+			::closesocket(iter);
+		}
+		m_UserSList.clear();
+		for (auto& iter : m_ChatSList)
+		{
+			::shutdown(iter, SD_BOTH);
+			::closesocket(iter);
+		}
+		m_ChatSList.clear();
+		for (auto& iter : m_LoginSList)
+		{
+			::shutdown(iter, SD_BOTH);
+			::closesocket(iter);
+		}
+		m_LoginSList.clear();
+		for (auto& iter : m_MemCachedSList)
+		{
+			::shutdown(iter, SD_BOTH);
+			::closesocket(iter);
+		}
+		m_MemCachedSList.clear();
+
+		//4. DB매니저 종료
+		GetDBManager().Release();
+
 		return true;
 	}
 	return false;
 }
 
-bool Mainthread::StartLogSetting()
+bool MainThread::StartLogSetting()
 {
 	std::string strFilePath = std::format("Log\\{0}\\", GetStrServerType());
 	if (CreateNestedDirectoryA(strFilePath) == false)
@@ -69,7 +110,7 @@ bool Mainthread::StartLogSetting()
 	return true;
 }
 
-bool Mainthread::LoadConfigSetting()
+bool MainThread::LoadConfigSetting()
 {
 	std::string strFilePath = "./Config/MainServerConfig.ini";
 	bool bResult = false;
@@ -125,10 +166,19 @@ bool Mainthread::LoadConfigSetting()
 	return true;
 }
 
-bool Mainthread::StartNetSetting()
+bool MainThread::StartNetSetting()
 {
 	WSADATA wsa = { 0 };
 	if (::WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+	{
+		return false;
+	}
+
+	if(LoadAcceptEx() == false)
+	{
+		return false;
+	}
+	if (LoadConnectEx() == false)
 	{
 		return false;
 	}
@@ -147,9 +197,9 @@ bool Mainthread::StartNetSetting()
 	}
 
 	//IOCP 스레드들 생성
-	for (int i = 0; i < MAX_THREAD_CNT; ++i)
+	for (int i = 0; i < IOCP_THREAD_CNT; ++i)
 	{
-		m_vIocpThread.emplace_back(&Mainthread::ThreadComplete, this);
+		GetThreadPool().enqueue([this]() { this->ThreadComplete(); });
 	}
 
 	SOCKET hListenUserS = ::WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
@@ -229,20 +279,21 @@ bool Mainthread::StartNetSetting()
 
 	m_umListenSocket.insert(std::make_pair(NetLine::NetLine_Main_MemCachedS, hListenMemCachedS));
 
-	std::thread tAcceptLoginS(&Mainthread::LoginSAcceptLoop, this);
-	std::thread tAcceptUserS(&Mainthread::UserSAcceptLoop, this);
-	std::thread tAcceptChatS(&Mainthread::ChatSAcceptLoop, this);
-	std::thread tAcceptMemCachedS(&Mainthread::MemCachedSAcceptLoop, this);
+	CreateIoCompletionPort((HANDLE)m_umListenSocket[NetLine::NetLine_Main_LoginS], m_hIocp, (ULONG_PTR)m_umListenSocket[NetLine::NetLine_Main_LoginS], 0);
+	CreateIoCompletionPort((HANDLE)m_umListenSocket[NetLine::NetLine_Main_UserS], m_hIocp, (ULONG_PTR)m_umListenSocket[NetLine::NetLine_Main_UserS], 0);
+	CreateIoCompletionPort((HANDLE)m_umListenSocket[NetLine::NetLine_Main_ChatS], m_hIocp, (ULONG_PTR)m_umListenSocket[NetLine::NetLine_Main_ChatS], 0);
+	CreateIoCompletionPort((HANDLE)m_umListenSocket[NetLine::NetLine_Main_MemCachedS], m_hIocp, (ULONG_PTR)m_umListenSocket[NetLine::NetLine_Main_MemCachedS], 0);
 
-	tAcceptLoginS.detach();
-	tAcceptUserS.detach();
-	tAcceptChatS.detach();
-	tAcceptMemCachedS.detach();
+	//Accept Thread Start
+	PostAccept(NetLine::NetLine_Main_LoginS);
+	PostAccept(NetLine::NetLine_Main_UserS);
+	PostAccept(NetLine::NetLine_Main_ChatS);
+	PostAccept(NetLine::NetLine_Main_MemCachedS);
 
 	return true;
 }
 
-bool Mainthread::StartDBConnection()
+bool MainThread::StartDBConnection()
 {
 	if (GetDBManager().init(m_strDBID, m_strDBPW, m_strServer) == false)
 	{
@@ -264,259 +315,33 @@ bool Mainthread::StartDBConnection()
 	return true;
 }
 
-std::string Mainthread::GetStrServerType()
+void MainThread::AddServerList(SOCKET hSocket, NetLine::en eLine)
 {
-	return std::string(magic_enum::enum_name(m_enType));
-}
-
-DWORD WINAPI Mainthread::LoginSAcceptLoop()
-{
-	USERSESSION* pNewUser;
-	int					nAddrSize = sizeof(SOCKADDR);
-	SOCKADDR		ClientAddr;
-	SOCKET			hClient;
-
-	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_Main_LoginS];
-
-	while (this->m_bRunning && (hClient = ::accept(hTargetSocket,&ClientAddr, &nAddrSize)) != INVALID_SOCKET)
+	::EnterCriticalSection(&m_cs);
+	switch (eLine)
 	{
-		puts("새 클라이언트가 연결됐습니다.");
-
-		//새 클라이언트에 대한 세션 객체 생성
-		pNewUser = new USERSESSION;
-		if(pNewUser == nullptr)
-		{
-			::closesocket(hClient);
-			continue;
-		}
-
-		::ZeroMemory(pNewUser, sizeof(USERSESSION));
-		pNewUser->hSocket = hClient;
-		pNewUser->eLine = NetLine::NetLine_Main_LoginS;
-		pNewUser->hAddr = ClientAddr;
-
-		HANDLE hIOCPResult = ::CreateIoCompletionPort((HANDLE)hClient, m_hIocp,(ULONG_PTR)pNewUser,0);
-
-		if(hIOCPResult == NULL)
-		{
-			::closesocket(hClient);
-			delete pNewUser;
-			continue;
-		}
-
-		pNewUser->recv_io.opType = opType::IO_RECV;
-		pNewUser->recv_io.wsaBuf.buf = pNewUser->recv_io.buffer;
-		pNewUser->recv_io.wsaBuf.len = sizeof(pNewUser->recv_io.buffer);
-
-		::EnterCriticalSection(&m_cs);
-		m_LoginSList.push_back(hClient);
-		::LeaveCriticalSection(&m_cs);
-
-		//클라이언트가 보낸 정보를 비동기 수신한다.
-		DWORD dwRecvBytes = 0;
-		DWORD dwFlag = 0;
-		if (::WSARecv(hClient, &pNewUser->recv_io.wsaBuf, 1, &dwRecvBytes, &dwFlag, &pNewUser->recv_io, NULL) == SOCKET_ERROR)
-		{
-			if (::WSAGetLastError() != WSA_IO_PENDING)
-			{
-				puts("ERROR: WSARecv() failed on new client connection.");
-				// Handle WSARecv failure
-				::closesocket(hClient);
-				delete pNewUser;
-				continue;
-			}
-		}
+	case NetLine::NetLine_Main_LoginS:
+		m_LoginSList.push_back(hSocket);
+		break;
+	case NetLine::NetLine_Main_MemCachedS:
+		m_MemCachedSList.push_back(hSocket);
+		break;
+	case NetLine::NetLine_Main_UserS:
+		m_UserSList.push_back(hSocket);
+		break;
+	case NetLine::NetLine_Main_ChatS:
+		m_ChatSList.push_back(hSocket);
+		break;
+	case NetLine::NetLine_Main_GameS:
+		m_GameSSList.push_back(hSocket);
+		break;
+	default:
+		break;
 	}
-
-	return 0;
+	::LeaveCriticalSection(&m_cs);
 }
 
-DWORD WINAPI Mainthread::UserSAcceptLoop()
-{
-	USERSESSION* pNewUser;
-	int					nAddrSize = sizeof(SOCKADDR);
-	SOCKADDR		ClientAddr;
-	SOCKET			hClient;
-
-	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_Main_UserS];
-
-	while (this->m_bRunning && (hClient = ::accept(hTargetSocket, &ClientAddr, &nAddrSize)) != INVALID_SOCKET)
-	{
-		puts("새 클라이언트가 연결됐습니다.");
-
-		//새 클라이언트에 대한 세션 객체 생성
-		pNewUser = new USERSESSION;
-		if (pNewUser == nullptr)
-		{
-			::closesocket(hClient);
-			continue;
-		}
-
-		::ZeroMemory(pNewUser, sizeof(USERSESSION));
-		pNewUser->hSocket = hClient;
-		pNewUser->eLine = NetLine::NetLine_Main_UserS;
-		pNewUser->hAddr = ClientAddr;
-
-		HANDLE hIOCPResult = ::CreateIoCompletionPort((HANDLE)hClient, m_hIocp, (ULONG_PTR)pNewUser, 0);
-
-		if (hIOCPResult == NULL)
-		{
-			::closesocket(hClient);
-			delete pNewUser;
-			continue;
-		}
-
-		pNewUser->recv_io.opType = opType::IO_RECV;
-		pNewUser->recv_io.wsaBuf.buf = pNewUser->recv_io.buffer;
-		pNewUser->recv_io.wsaBuf.len = sizeof(pNewUser->recv_io.buffer);
-
-		::EnterCriticalSection(&m_cs);
-		m_UserSList.push_back(hClient);
-		::LeaveCriticalSection(&m_cs);
-
-		//클라이언트가 보낸 정보를 비동기 수신한다.
-		DWORD dwRecvBytes = 0;
-		DWORD dwFlag = 0;
-		if (::WSARecv(hClient, &pNewUser->recv_io.wsaBuf, 1, &dwRecvBytes, &dwFlag, &pNewUser->recv_io, NULL) == SOCKET_ERROR)
-		{
-			if (::WSAGetLastError() != WSA_IO_PENDING)
-			{
-				puts("ERROR: WSARecv() failed on new client connection.");
-				// Handle WSARecv failure
-				::closesocket(hClient);
-				delete pNewUser;
-				continue;
-			}
-		}
-	}
-
-	return 0;
-}
-
-DWORD WINAPI Mainthread::ChatSAcceptLoop()
-{
-	USERSESSION* pNewUser;
-	int				nAddrSize = sizeof(SOCKADDR);
-	SOCKADDR		ClientAddr;
-	SOCKET			hClient;
-
-	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_Main_ChatS];
-
-	while (this->m_bRunning && (hClient = ::accept(hTargetSocket, &ClientAddr, &nAddrSize)) != INVALID_SOCKET)
-	{
-		puts("새 클라이언트가 연결됐습니다.");
-
-		//새 클라이언트에 대한 세션 객체 생성
-		pNewUser = new USERSESSION;
-		if (pNewUser == nullptr)
-		{
-			::closesocket(hClient);
-			continue;
-		}
-
-		::ZeroMemory(pNewUser, sizeof(USERSESSION));
-		pNewUser->hSocket = hClient;
-		pNewUser->eLine = NetLine::NetLine_Main_ChatS;
-		pNewUser->hAddr = ClientAddr;
-
-		HANDLE hIOCPResult = ::CreateIoCompletionPort((HANDLE)hClient, m_hIocp, (ULONG_PTR)pNewUser, 0);
-
-		if (hIOCPResult == NULL)
-		{
-			::closesocket(hClient);
-			delete pNewUser;
-			continue;
-		}
-
-		pNewUser->recv_io.opType = opType::IO_RECV;
-		pNewUser->recv_io.wsaBuf.buf = pNewUser->recv_io.buffer;
-		pNewUser->recv_io.wsaBuf.len = sizeof(pNewUser->recv_io.buffer);
-
-		::EnterCriticalSection(&m_cs);
-		m_ChatSList.push_back(hClient);
-		::LeaveCriticalSection(&m_cs);
-
-		//클라이언트가 보낸 정보를 비동기 수신한다.
-		DWORD dwRecvBytes = 0;
-		DWORD dwFlag = 0;
-		if (::WSARecv(hClient, &pNewUser->recv_io.wsaBuf, 1, &dwRecvBytes, &dwFlag, &pNewUser->recv_io, NULL) == SOCKET_ERROR)
-		{
-			if (::WSAGetLastError() != WSA_IO_PENDING)
-			{
-				puts("ERROR: WSARecv() failed on new client connection.");
-				::closesocket(hClient);
-				delete pNewUser;
-				continue;
-			}
-		}
-	}
-
-	return 0;
-}
-
-DWORD WINAPI Mainthread::MemCachedSAcceptLoop()
-{
-	USERSESSION* pNewUser;
-	int					nAddrSize = sizeof(SOCKADDR);
-	SOCKADDR		ClientAddr;
-	SOCKET			hClient;
-
-	SOCKET hTargetSocket = m_umListenSocket[NetLine::NetLine_Main_MemCachedS];
-
-	while (this->m_bRunning && (hClient = ::accept(hTargetSocket, &ClientAddr, &nAddrSize)) != INVALID_SOCKET)
-	{
-		puts("새 클라이언트가 연결됐습니다.");
-
-		//새 클라이언트에 대한 세션 객체 생성
-		pNewUser = new USERSESSION;
-		if (pNewUser == nullptr)
-		{
-			::closesocket(hClient);
-			continue;
-		}
-
-		::ZeroMemory(pNewUser, sizeof(USERSESSION));
-		pNewUser->hSocket = hClient;
-		pNewUser->eLine = NetLine::NetLine_Main_MemCachedS;
-		pNewUser->hAddr = ClientAddr;
-
-		HANDLE hIOCPResult = ::CreateIoCompletionPort((HANDLE)hClient, m_hIocp, (ULONG_PTR)pNewUser, 0);
-
-		if (hIOCPResult == NULL)
-		{
-			::closesocket(hClient);
-			delete pNewUser;
-			continue;
-		}
-
-		pNewUser->recv_io.opType = opType::IO_RECV;
-		pNewUser->recv_io.wsaBuf.buf = pNewUser->recv_io.buffer;
-		pNewUser->recv_io.wsaBuf.len = sizeof(pNewUser->recv_io.buffer);
-
-		::EnterCriticalSection(&m_cs);
-		m_MemCachedSList.push_back(hClient);
-		::LeaveCriticalSection(&m_cs);
-
-		//클라이언트가 보낸 정보를 비동기 수신한다.
-		DWORD dwRecvBytes = 0;
-		DWORD dwFlag = 0;
-		if (::WSARecv(hClient, &pNewUser->recv_io.wsaBuf, 1, &dwRecvBytes, &dwFlag, &pNewUser->recv_io, NULL) == SOCKET_ERROR)
-		{
-			if (::WSAGetLastError() != WSA_IO_PENDING)
-			{
-				puts("ERROR: WSARecv() failed on new client connection.");
-				// Handle WSARecv failure
-				::closesocket(hClient);
-				delete pNewUser;
-				continue;
-			}
-		}
-	}
-
-	return 0;
-}
-
-DWORD WINAPI Mainthread::ThreadComplete()
+DWORD WINAPI MainThread::ThreadComplete()
 {
 	DWORD			dwTransferredSize = 0;
 	USERSESSION* pSession = NULL;
@@ -535,17 +360,81 @@ DWORD WINAPI Mainthread::ThreadComplete()
 
 		if (bResult == TRUE && pIOData != nullptr)
 		{
-			if(pIOData->opType == opType::IO_SEND)
+			switch (pIOData->opType)
 			{
-				delete pIOData;
+			case opType::IO_ACCEPT:
+			{
+				// 비동기 연결 완료 처리
+				SOCKET hClientSocket = ((IO_DATA*)pIOData)->hSocket;
+
+				// 1. GetQueuedCompletionStatus가 반환하는 USERSESSION 포인터는 이 시점에 유효하지 않음
+				// 2. AcceptEx를 통해 연결된 클라이언트 소켓을 IOCP에 등록
+				USERSESSION* pNewUser = new USERSESSION;
+				::ZeroMemory(pNewUser, sizeof(USERSESSION));
+				pNewUser->hSocket = hClientSocket;
+				pNewUser->eLine = pIOData->eLine; // AcceptEx 호출 시 지정한 라인 정보
+
+				SOCKADDR_IN* pLocalAddr = nullptr;
+				SOCKADDR_IN* pRemoteAddr = nullptr;
+				int localAddrLen = sizeof(SOCKADDR_IN);
+				int remoteAddrLen = sizeof(SOCKADDR_IN);
+				::GetAcceptExSockaddrs(
+					pIOData->buffer, 0,
+					sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16,
+					(LPSOCKADDR*)&pLocalAddr, &localAddrLen,
+					(LPSOCKADDR*)&pRemoteAddr, &remoteAddrLen);
+
+				if (pRemoteAddr)
+				{
+					if (remoteAddrLen >= sizeof(SOCKADDR_IN))
+					{
+						memcpy(&pNewUser->hAddr, pRemoteAddr, sizeof(SOCKADDR_IN));
+					}
+					else if (remoteAddrLen > 0)
+					{
+						// remoteAddrLen이 sizeof(SOCKADDR_IN)보다 작을 때는 읽을 수 있는 만큼만 복사
+						memcpy(&pNewUser->hAddr, pRemoteAddr, remoteAddrLen);
+						// 나머지 영역은 0으로 채움
+						if (remoteAddrLen < sizeof(SOCKADDR_IN))
+						{
+							memset(((char*)&pNewUser->hAddr) + remoteAddrLen, 0, sizeof(SOCKADDR_IN) - remoteAddrLen);
+						}
+					}
+					else
+					{
+						ZeroMemory(&pNewUser->hAddr, sizeof(SOCKADDR_IN));
+					}
+				}
+				else
+				{
+					GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "GetAcceptExSockaddrs Failed");
+				}
+
+				::CreateIoCompletionPort((HANDLE)hClientSocket, m_hIocp, (ULONG_PTR)pNewUser, 0);
+
+				// 3. WSARecv를 등록하여 데이터 수신 시작
+				pNewUser->recv_io.opType = opType::IO_RECV;
+				pNewUser->recv_io.wsaBuf.buf = pNewUser->recv_io.buffer;
+				pNewUser->recv_io.wsaBuf.len = sizeof(pNewUser->recv_io.buffer);
+				DWORD			dwRecvBytes = 0;
+				DWORD			dwFlags = 0;
+				if (WSARecv(pNewUser->hSocket, &pNewUser->recv_io.wsaBuf, 1, &dwRecvBytes, &dwFlags, &pNewUser->recv_io, NULL) == SOCKET_ERROR)
+				{
+					if (::WSAGetLastError() != WSA_IO_PENDING)
+						puts("\tGQCS: ERROR: WSARecv()");
+				}
+
+				// 4. 다음 연결을 받기 위해 다시 PostAccept 호출
+				PostAccept(pIOData->eLine);
+				delete pIOData; // Accept 작업에 사용된 IO_DATA 객체 해제
 			}
-			else if(pIOData->opType == opType::IO_RECV)
+				break;
+			case opType::IO_RECV:
 			{
 				//수신한 데이터가 0이면 연결 종료.
 				if (dwTransferredSize == 0)
 				{
 					CloseClient(pSession);
-					delete pSession;
 					GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Close Client Nomally.");
 					continue;
 				}
@@ -559,6 +448,20 @@ DWORD WINAPI Mainthread::ThreadComplete()
 					if (::WSAGetLastError() != WSA_IO_PENDING)
 						puts("\tGQCS: ERROR: WSARecv()");
 				}
+			}
+				break;
+			case opType::IO_SEND:
+			{
+				delete pIOData;
+			}
+				break;
+			case opType::IO_CONNECT:
+			{
+				//MainServer의 경우 Connect 요청을 보내지 않음.
+			}
+				break;
+			default:
+				break;
 			}
 		}
 		else
@@ -588,7 +491,7 @@ DWORD WINAPI Mainthread::ThreadComplete()
 	return 0;
 }
 
-void Mainthread::CloseClient(USERSESSION* pSession)
+void MainThread::CloseClient(USERSESSION* pSession)
 {
 	::shutdown(pSession->hSocket, SD_BOTH);
 	::closesocket(pSession->hSocket);
@@ -616,4 +519,76 @@ void Mainthread::CloseClient(USERSESSION* pSession)
 		break;
 	}
 	::LeaveCriticalSection(&m_cs);
+	delete pSession;
+}
+
+bool MainThread::LoadConnectEx()
+{
+	SOCKET hDummySocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	GUID guidConnectEx = WSAID_CONNECTEX;
+	DWORD dwBytes = 0;
+	WSAIoctl(hDummySocket, SIO_GET_EXTENSION_FUNCTION_POINTER, &guidConnectEx, sizeof(guidConnectEx),
+		&ConnectExPtr, sizeof(ConnectExPtr), &dwBytes, NULL, NULL);
+
+	if( ConnectExPtr == nullptr )
+	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Can Not Load ConnectEx Function:", WSAGetLastError());
+		return false;
+	}
+
+	return true;
+}
+
+bool MainThread::LoadAcceptEx()
+{
+	SOCKET hDummySocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	GUID guidAcceptEx = WSAID_ACCEPTEX;
+	DWORD dwBytes = 0;
+	WSAIoctl(hDummySocket, SIO_GET_EXTENSION_FUNCTION_POINTER, &guidAcceptEx, sizeof(guidAcceptEx),
+		&lpfnAcceptEx, sizeof(lpfnAcceptEx), &dwBytes, NULL, NULL);
+	if (lpfnAcceptEx == nullptr)
+	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Can Not Load AcceptEx Function:", WSAGetLastError());
+		return false;
+	}
+
+	return true;
+}
+
+bool MainThread::PostAccept(NetLine::en eLine)
+{
+	SOCKET hAcceptSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
+	if (hAcceptSocket == INVALID_SOCKET) {
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Can Not Create Accept Socket");
+		return false;
+	}
+
+	// Accept 작업을 위한 IO_DATA 객체 동적 할당
+	IO_DATA* pIOData = new IO_DATA;
+	if (pIOData == nullptr) {
+		::closesocket(hAcceptSocket);
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Can Not Allocate Memory for IO_DATA");
+		return false;
+	}
+	ZeroMemory(pIOData, sizeof(IO_DATA));
+	pIOData->opType = opType::IO_ACCEPT;
+	pIOData->hSocket = hAcceptSocket;
+	pIOData->eLine = eLine;
+	pIOData->wsaBuf.buf = pIOData->buffer;
+	pIOData->wsaBuf.len = sizeof(pIOData->buffer);
+
+	// listen 소켓에 미리 생성한 소켓을 연결하여 비동기 accept 작업 등록
+	DWORD dwBytes = 0;
+	if (AcceptEx(m_umListenSocket[eLine], hAcceptSocket, pIOData->buffer, 0,
+		sizeof(SOCKADDR_IN) + 16, sizeof(SOCKADDR_IN) + 16, &dwBytes, (LPOVERLAPPED)pIOData) == FALSE)
+	{
+		if (::WSAGetLastError() != WSA_IO_PENDING)
+		{
+			puts("ERROR: AcceptEx() failed.");
+			::closesocket(hAcceptSocket);
+			delete pIOData;
+			return false;
+		}
+	}
+	return true;
 }

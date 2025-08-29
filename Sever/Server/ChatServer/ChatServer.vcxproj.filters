@@ -18,10 +18,19 @@
     <Filter Include="NetMsgFunc\Source">
       <UniqueIdentifier>{85bcfe1a-b835-4358-a272-7309169bbed8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="MainThread">
+      <UniqueIdentifier>{0c645012-eb0b-4eae-985b-f588d4cd3cc5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Global">
+      <UniqueIdentifier>{c7e427e6-07ab-42d5-8140-66f8553b2560}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ChatServer.cpp">
       <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="MainThread.cpp">
+      <Filter>MainThread</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -45,6 +54,36 @@
     </ClInclude>
     <ClInclude Include="..\Global\Protocol\NetMsgUserS.h">
       <Filter>NetMsgFunc\Header</Filter>
+    </ClInclude>
+    <ClInclude Include="MainThread.h">
+      <Filter>MainThread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\CreatDirectorys.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\DataBaseManager.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\LogManager.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\NetWork.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Singleton.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\ThreadPool.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\ThreadSafeQueue.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Types.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\UserSocket.h">
+      <Filter>Global</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

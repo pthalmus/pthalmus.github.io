@@ -115,7 +115,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>GlobalLib.lib;odbc32.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>GlobalLib.lib;odbc32.lib;legacy_stdio_definitions.lib;Mswsock.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>../Global/;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <UACExecutionLevel>HighestAvailable</UACExecutionLevel>
     </Link>
@@ -139,8 +139,11 @@
     <ClCompile Include="MainServer.cpp" />
     <ClCompile Include="Mainthread.cpp" />
     <ClCompile Include="NetMsg.cpp" />
+    <ClCompile Include="NetMsgFuncChat.cpp" />
+    <ClCompile Include="NetMsgFuncGame.cpp" />
     <ClCompile Include="NetMsgFuncLogin.cpp" />
     <ClCompile Include="NetMsgFuncMemCached.cpp" />
+    <ClCompile Include="NetMsgFuncUserS.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Global\CreatDirectorys.h" />

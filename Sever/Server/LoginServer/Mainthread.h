@@ -14,45 +14,51 @@
 #include <LogManager.h>
 #include <CreatDirectorys.h>
 #include <UserSocket.h>
+#include <ThreadPool.h>
 
-class Mainthread : public Singleton<Mainthread>
+class MainThread : public Singleton<MainThread>
 {
-	//Global Config Setting
-	ServerType::en m_enType = ServerType::LoginServer;
-	std::string m_strMainSIP = "";
-	int m_nMainSPort = 0;
-	int m_nUserPort = 0;
-	bool m_bRunning = false;
+private:
+    LPFN_CONNECTEX ConnectExPtr;
+    LPFN_ACCEPTEX lpfnAcceptEx;
+    bool m_bRunning = true;
+    ServerType::en m_enType = ServerType::LoginServer;
 
-	std::unordered_map< NetLine::en, SOCKET> m_umListenSocket;				//Line 별 Listen Socket을 모아둔 map
-	USERSESSION* m_pMainSSession;
-	std::list<SOCKET> m_UserList;
-	HANDLE	m_hIocp;																			//IOCP 핸들
-	CRITICAL_SECTION  m_cs;																//스레드 동기화 객체
-	std::vector<std::thread> m_vIocpThread;
+    //Global Config Setting
+    std::string m_strMainSIP = "";
+    int m_nMainSPort = 0;
+    int m_nUserPort = 0;
 
+    HANDLE m_hIocp;
+    std::unordered_map< NetLine::en, SOCKET> m_umListenSocket;
+    CRITICAL_SECTION  m_cs;
+
+    USERSESSION* m_pMainSSession;
+    std::list<SOCKET> m_UserList;
+    std::unordered_map< std::string, USERSESSION*> m_umUserSesseion;
 
 
 public:
-	DWORD WINAPI StartMainThread();
-	bool WINAPI Release(DWORD dwType);
-	bool StartLogSetting();
-	bool LoadConfigSetting();
-	bool StartNetSetting();
-	bool StartConnectMainServer();
-	void StartHeartBeatLoop();
-	std::string GetStrServerType();
+    void StartMainThread();
+    bool Release(DWORD dwType);
+    bool IsRunning() const { return m_bRunning; }
+    std::string GetStrServerType() { return std::string(magic_enum::enum_name(m_enType)); }
+
+    bool StartLogSetting();
+    bool LoadConfigSetting();
+    bool StartNetSetting();
+    void StartHeartBeatLoop();
+    bool StartConnectMainServer();
+
+    DWORD WINAPI ThreadComplete();
+    bool PostAccept(NetLine::en eLine);
+    void CloseClient(USERSESSION* pSession);
+    bool LoadConnectEx();
+    bool LoadAcceptEx();
+
+    USERSESSION* GetMainServer() { return this->m_pMainSSession; }
 
 	void CompleteConnectMainServer();
-
-	DWORD WINAPI UserAcceptLoop();
-	DWORD WINAPI HeartBeatLoop();
-
-	DWORD WINAPI ThreadComplete();
-
-	void CloseClient(USERSESSION* pSession);
-
-	USERSESSION* GetMainServer();
 };
 
-#define GetMainThread() Mainthread::Instance()
+#define GetMainThread() MainThread::Instance()

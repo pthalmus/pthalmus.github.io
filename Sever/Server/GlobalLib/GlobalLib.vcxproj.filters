@@ -68,6 +68,9 @@
     <ClInclude Include="..\Global\Protocol\NetMsgUserS.h">
       <Filter>Protocol\Header</Filter>
     </ClInclude>
+    <ClInclude Include="..\Global\ThreadPool.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GlobalLib.cpp">

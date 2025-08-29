@@ -8,12 +8,13 @@
 class MainClient
 {
 public:
-	bool				m_bRun;
-	std::string		m_strLoginSIP;
-	std::string		m_strVersion;
-	int					m_nLoginSPort;
-	USERSESSION* m_pSession;
-	HANDLE			hCompletionPort;
+	bool						m_bRun;
+	std::string				m_strLoginSIP;
+	std::string				m_strVersion;
+	int							m_nLoginSPort;
+	USERSESSION*			m_pSession;
+	HANDLE					hCompletionPort;
+	LPFN_CONNECTEX	ConnectExPtr;
 
 	MainClient() : m_bRun(true), m_nLoginSPort(0), m_pSession(nullptr), hCompletionPort(NULL) {}
 
@@ -35,4 +36,5 @@ public:
 	bool ConnectToLoginServer();
 	bool StartNetwork();
 	DWORD WINAPI ThreadComplete();
+	void LoadConnectEx();
 };

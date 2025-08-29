@@ -43,24 +43,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Global\CreatDirectorys.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Global\LogManager.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Global\Singleton.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Global\Types.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Global\UserSocket.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Global\NetWork.h">
-      <Filter>Global</Filter>
-    </ClInclude>
     <ClInclude Include="..\Global\Protocol\NetMsg.h">
       <Filter>NetMsgFunc\Header</Filter>
     </ClInclude>
@@ -84,6 +66,30 @@
     </ClInclude>
     <ClInclude Include="Mainthread.h">
       <Filter>MainThread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\CreatDirectorys.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\DataBaseManager.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\LogManager.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\NetWork.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Singleton.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\ThreadSafeQueue.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\Types.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Global\UserSocket.h">
+      <Filter>Global</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -21,6 +21,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Database", "Database", "{C8
 EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "MemberDatabase", "MemberDatabase\MemberDatabase.sqlproj", "{15EF84AA-7D8D-4194-9F03-48991509EE71}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GameServer", "GameServer\GameServer.vcxproj", "{F7505ECF-B41C-4D52-B96F-A1372191A9A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -139,6 +141,18 @@ Global
 		{15EF84AA-7D8D-4194-9F03-48991509EE71}.Release|x86.ActiveCfg = Release|Any CPU
 		{15EF84AA-7D8D-4194-9F03-48991509EE71}.Release|x86.Build.0 = Release|Any CPU
 		{15EF84AA-7D8D-4194-9F03-48991509EE71}.Release|x86.Deploy.0 = Release|Any CPU
+		{F7505ECF-B41C-4D52-B96F-A1372191A9A0}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{F7505ECF-B41C-4D52-B96F-A1372191A9A0}.Debug|Any CPU.Build.0 = Debug|x64
+		{F7505ECF-B41C-4D52-B96F-A1372191A9A0}.Debug|x64.ActiveCfg = Debug|x64
+		{F7505ECF-B41C-4D52-B96F-A1372191A9A0}.Debug|x64.Build.0 = Debug|x64
+		{F7505ECF-B41C-4D52-B96F-A1372191A9A0}.Debug|x86.ActiveCfg = Debug|Win32
+		{F7505ECF-B41C-4D52-B96F-A1372191A9A0}.Debug|x86.Build.0 = Debug|Win32
+		{F7505ECF-B41C-4D52-B96F-A1372191A9A0}.Release|Any CPU.ActiveCfg = Release|x64
+		{F7505ECF-B41C-4D52-B96F-A1372191A9A0}.Release|Any CPU.Build.0 = Release|x64
+		{F7505ECF-B41C-4D52-B96F-A1372191A9A0}.Release|x64.ActiveCfg = Release|x64
+		{F7505ECF-B41C-4D52-B96F-A1372191A9A0}.Release|x64.Build.0 = Release|x64
+		{F7505ECF-B41C-4D52-B96F-A1372191A9A0}.Release|x86.ActiveCfg = Release|Win32
+		{F7505ECF-B41C-4D52-B96F-A1372191A9A0}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -4,11 +4,8 @@
 void DBThread::StartDBThread()
 {
 	m_bRunning = true;
-	m_hRequestThread = std::thread(&DBThread::DBRequestFunc, this);
-	m_hResponseThread = std::thread(&DBThread::DBResponseFunc, this);
-
-	m_hRequestThread.detach();
-	m_hResponseThread.detach();
+	GetThreadPool().enqueue([this]() { this->DBRequestFunc(); });
+	GetThreadPool().enqueue([this]() { this->DBResponseFunc(); });
 
 	GetLogManager().SystemLog(__FUNCTION__, __LINE__, "DB Thread Start!!");
 	while (m_bRunning)
@@ -27,8 +24,6 @@ void DBThread::StopDBThread()
 	if (m_bRunning)
 	{
 		m_bRunning = false;
-		m_hRequestThread.join();
-		m_hResponseThread.join();
 	}
 }
 

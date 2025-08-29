@@ -21,8 +21,6 @@ public:
 
 private:
     bool m_bRunning = false;
-    std::thread m_hRequestThread;
-    std::thread m_hResponseThread;
     void DBRequestFunc();
     void DBResponseFunc();
 

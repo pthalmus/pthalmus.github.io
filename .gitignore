@@ -2,6 +2,7 @@
 *.pdb
 *.tlog
 *.user
+*.ini
 /Sever/Server/ChatServer/x64
 /Sever/Server/LoginServer/x64
 /Sever/Server/MainServer/x64
@@ -19,4 +20,3 @@
 *.cache
 *.jfm
 *.dbmdl
-/Sever/Release/Config

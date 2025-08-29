@@ -1,5 +1,5 @@
 ﻿#include<iostream>
-#include <thread>
+#include <ThreadPool.h>
 
 #include "Mainthread.h"
 
@@ -10,8 +10,16 @@ bool WINAPI Release(DWORD dwType)
 
 int main()
 {
-	std::thread tMainThread(&Mainthread::StartMainThread, &GetMainThread());
+	//메인 스레드 시작
+	GetThreadPool().init(MAX_THREAD_CNT);
+	GetThreadPool().enqueue([]() { GetMainThread().StartMainThread(); });
 	SetConsoleCtrlHandler((PHANDLER_ROUTINE)Release, TRUE);
 
-	tMainThread.join();
+	//종료 대기
+	while (GetMainThread().IsRunning())
+	{
+		Sleep(1000);
+	}
+	Release(CTRL_C_EVENT);
+	GetThreadPool().Stop();
 }

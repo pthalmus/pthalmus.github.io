@@ -1,7 +1,4 @@
 #pragma once
-#include <stdint.h>
-#include <Types.h>
-
 #include "NetMsgLogin.h"
 #include "NetMsgMain.h"
 #include "NetMsgUser.h"
@@ -20,6 +17,7 @@ public:
 	static bool Request_Connect_FromMemCached(NetMain::request_connect_fromMemCached* pBase, USERSESSION* pSession);
 	static bool Request_Connect_FromUserS(NetMain::request_connect_fromUserS* pBase, USERSESSION* pSession);
 	static bool Request_Connect_FromChat(NetMain::request_connect_fromChat* pBase, USERSESSION* pSession);
+	static bool Request_Connect_FromGame(NetMain::request_connect_fromGame* pBase, USERSESSION* pSession);
 	static bool Request_DBInfo_FromMemCached(NetMain::request_dbinfo_fromMemCached* pBase, USERSESSION* pSession);
 
 	//Result

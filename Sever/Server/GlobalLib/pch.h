@@ -10,8 +10,6 @@
 // 여기에 미리 컴파일하려는 헤더 추가
 #include "framework.h"
 
-
-
 #include <UserSocket.h>
 #include <Types.h>
 #include <CreatDirectorys.h>
@@ -19,7 +17,7 @@
 #include <NetWork.h>
 #include <Singleton.h>
 #include <DataBaseManager.h>
-
+#include <ThreadPool.h>
 #include <ThreadSafeQueue.h>
 
 #include <Protocol/NetMsg.h>

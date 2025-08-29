@@ -14,50 +14,55 @@
 #include <CreatDirectorys.h>
 #include <DataBaseManager.h>
 #include <ThreadSafeQueue.h>
+#include <ThreadPool.h>
 
 #include "DBThread.h"
 
-class Mainthread : public Singleton<Mainthread>
+class MainThread : public Singleton<MainThread>
 {
-	//Global Config Setting
+private:
+	LPFN_CONNECTEX ConnectExPtr;
+	LPFN_ACCEPTEX lpfnAcceptEx;
+	bool m_bRunning = true;
 	ServerType::en m_enType = ServerType::MemCachedServer;
+
+	//Global Config Setting
 	std::string m_strMainSIP = "";
 	int m_nMainSPort = 0;
 	int m_nUserSPort = 0;
-	std::string m_strDBID = "";													//MainServer 로부터 전달받음
-	std::string m_strDBPW = "";													//MainServer 로부터 전달받음
-	std::string m_strServer = "";													//MainServer 로부터 전달받음
+	std::string m_strDBID = "";
+	std::string m_strDBPW = "";
+	std::string m_strServer = "";
+
+	HANDLE m_hIocp;
+	std::unordered_map< NetLine::en, SOCKET> m_umListenSocket;
+	CRITICAL_SECTION  m_cs;
+
 	USERSESSION* m_pMainSSession;
-
-	bool m_bRunning = false;
-	SOCKET m_hListenSocket;													// Listen Socket
-	HANDLE	m_hIocp;																//IOCP 핸들
-	CRITICAL_SECTION  m_cs;													//스레드 동기화 객체
-	std::vector<std::thread> m_vIocpThread;
-	std::list<SOCKET> m_UserSList;												// UserS List
-
-	DBThread m_DBThread;														// DB Thread 관리
-	std::thread m_hDBThread;													// DB Thread
+	std::list<SOCKET> m_UserSList;
+	DBThread m_DBThread;
 public:
-	DWORD WINAPI StartMainThread();
-	bool WINAPI Release(DWORD dwType);
+	void StartMainThread();
+	bool Release(DWORD dwType);
+	bool IsRunning() const { return m_bRunning; }
+	std::string GetStrServerType() { return std::string(magic_enum::enum_name(m_enType)); }
+
 	bool StartLogSetting();
 	bool LoadConfigSetting();
 	bool StartNetSetting();
+	void StartHeartBeatLoop();
+
 	bool StartDBConnection();
 	bool StartConnectMainServer();
 	bool StartDBThread();
-	std::string GetStrServerType();
 
-	void CompleteConnectMainServer();
-	DWORD WINAPI HeartBeatLoop();
-	USERSESSION* GetMainServer();
-	bool IsRunning() const { return m_bRunning; }
-
-	DWORD WINAPI UserSAcceptLoop();
 	DWORD WINAPI ThreadComplete();
+	bool PostAccept(NetLine::en eLine);
 	void CloseClient(USERSESSION* pSession);
+	bool LoadConnectEx();
+	bool LoadAcceptEx();
 
+	USERSESSION* GetMainServer() { return m_pMainSSession; }
 	void SetDBInfo(const std::string& dbID, const std::string& dbPW, const std::string& server)
 	{
 		m_strDBID = dbID;
@@ -66,6 +71,8 @@ public:
 	}
 
 	bool AddDBRequest(SQLDATA* pData);
+	void CompleteConnectMainServer();
+	void RequestDBConnectionData();
 };
 
-#define GetMainThread() Mainthread::Instance()
+#define GetMainThread() MainThread::Instance()

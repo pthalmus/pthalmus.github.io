@@ -15,9 +15,15 @@
 #include <CreatDirectorys.h>
 #include <DataBaseManager.h>
 #include <ThreadSafeQueue.h>
+#include <ThreadPool.h>
 
-class Mainthread : public Singleton<Mainthread>
+class MainThread : public Singleton<MainThread>
 {
+private:
+	LPFN_CONNECTEX ConnectExPtr;
+	LPFN_ACCEPTEX lpfnAcceptEx;
+	bool m_bRunning = true;
+
 	//Global Config Setting
 	ServerType::en m_enType = ServerType::MainServer;
 	std::string m_strDBID = "";
@@ -28,38 +34,34 @@ class Mainthread : public Singleton<Mainthread>
 	int m_nChatPort = 0;
 	int m_nMemCachedPort = 0;
 
-	bool m_bRunning = false;
+	HANDLE m_hIocp;
+	std::unordered_map< NetLine::en, SOCKET> m_umListenSocket;
+	CRITICAL_SECTION  m_cs;
 
-	std::unordered_map< NetLine::en, SOCKET> m_umListenSocket;				//Line 별 Listen Socket을 모아둔 map
 	std::list<SOCKET> m_UserSList;
 	std::list<SOCKET> m_ChatSList;
 	std::list<SOCKET> m_LoginSList;
 	std::list<SOCKET> m_MemCachedSList;
-	HANDLE	m_hIocp;																			//IOCP 핸들
-	CRITICAL_SECTION  m_cs;																//스레드 동기화 객체
-	std::vector<std::thread> m_vIocpThread;
-
-	std::thread m_hDBThread;
+	std::list<SOCKET> m_GameSSList;
 
 public:
+	void StartMainThread();
+	bool Release(DWORD dwType);
+	bool IsRunning() const { return m_bRunning; }
+	std::string GetStrServerType() { return std::string(magic_enum::enum_name(m_enType)); }
 
-	DWORD WINAPI StartMainThread();
-	bool WINAPI Release(DWORD dwType);
 	bool StartLogSetting();
 	bool LoadConfigSetting();
 	bool StartNetSetting();
-	bool StartDBConnection();
-	std::string GetStrServerType();
-
-	DWORD WINAPI LoginSAcceptLoop();
-	DWORD WINAPI UserSAcceptLoop();
-	DWORD WINAPI ChatSAcceptLoop();
-	DWORD WINAPI MemCachedSAcceptLoop();
+	void StartHeartBeatLoop();
 
 	DWORD WINAPI ThreadComplete();
-
+	bool PostAccept(NetLine::en eLine);
 	void CloseClient(USERSESSION* pSession);
+	bool LoadConnectEx();
+	bool LoadAcceptEx();
 
+	bool StartDBConnection();
 	void GetDBInfo(char* strDBID, size_t nDBIDSize,
 		char* strDBPW, size_t nDBPWSize,
 		char* strServer, size_t nServerSize)
@@ -68,6 +70,8 @@ public:
 		strcpy_s(strDBPW, nDBPWSize, m_strDBPW.c_str());
 		strcpy_s(strServer, nServerSize, m_strServer.c_str());
 	}
+
+	void AddServerList(SOCKET hSocket, NetLine::en eLine);
 };
 
-#define GetMainThread() Mainthread::Instance()
+#define GetMainThread() MainThread::Instance()

@@ -1,6 +1,7 @@
 #include <Protocol/NetMsg.h>
 #include <LogManager.h>
 
+#include "MainThread.h"
 bool NetMsgFunc::Request_Connect_FromLogin(NetMain::request_connect_fromLogin* pBase, USERSESSION* pSession)
 {
 	if (pBase == nullptr || pSession == nullptr)
@@ -13,6 +14,7 @@ bool NetMsgFunc::Request_Connect_FromLogin(NetMain::request_connect_fromLogin* p
 	}
 
 	GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Complete Connect LoginServer!!");
+	GetMainThread().AddServerList(pSession->hSocket, pSession->eLine);
 	auto* pMsg = CREATE_PACKET(NetMain::result_connect_fromMain, NetLine::NetLine_Main, NetMain::eResult_Connect_FromMain);
 	GetPacketDispatcher().DispatchSend(pSession, (const char*)pMsg, pMsg->GetSize());
 	return true;
@@ -46,5 +48,5 @@ bool NetMsgFunc::Request_Login_FromLogin(NetLogin::request_login_fromLogin* pBas
 
 bool NetMsgFunc::Request_Cert_FromLogin(NetLogin::request_cert_fromLogin* pBase, USERSESSION* pSession)
 {
-	return false;
+	return true;
 }

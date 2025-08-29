@@ -10,6 +10,7 @@ namespace ServerType
 		ChatServer,
 		LoginServer,
 		MemCachedServer,
+		GameServer,
 		eMAX
 	};
 }
@@ -32,8 +33,11 @@ namespace NetLine {
 		NetLine_Main_UserS					= 2, // NetMsgUser 용 라인
 		NetLine_Main_ChatS					= 3, // NetMsgChat 용 라인
 		NetLine_Main_MemCachedS		= 4, // NetMsgMemCached 용 라인
+		NetLine_Main_GameS					= 5, // NetMsgGame 용 라인
 		NetLine_LoginS_User					= 11, // LoginServer - User 용 라인
 		NetLine_UserS_User					= 12, // UserServer - User  용 라인
+		NetLine_ChatS_User					= 13, // ChatServer - User  용 라인
+		NetLine_GameS_User					= 14, // GameServer - User  용 라인
 		NetLine_MemCachedS_UserS		= 21, // MemCachedServer - UserServer 용 라인
 		eMAX										=255
 	};
@@ -59,4 +63,5 @@ namespace opType {
 	};
 }
 
-#define MAX_THREAD_CNT 6
+#define MAX_THREAD_CNT 12
+#define IOCP_THREAD_CNT 8

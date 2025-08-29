@@ -57,6 +57,14 @@ namespace NetMain
 	////////////////////////////////////////////////////
 
 	////////////////////////////////////////////////////
+	enum { eRequest_Connect_FromGame = 6 };
+	struct request_connect_fromGame : public PACKET
+	{
+		size_t GetSize() override { return sizeof(request_connect_fromGame); }
+	};
+	////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////
 	enum { eInform_Heartbeat_FromLogin = 11 };
 	struct inform_heartbeat_fromLogin : public PACKET
 	{
@@ -85,6 +93,14 @@ namespace NetMain
 	struct inform_heartbeat_fromChat : public PACKET
 	{
 		size_t GetSize() override { return sizeof(inform_heartbeat_fromChat); }
+	};
+	////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////
+	enum { eInform_Heartbeat_FromGame = 15 };
+	struct inform_heartbeat_fromGame : public PACKET
+	{
+		size_t GetSize() override { return sizeof(inform_heartbeat_fromGame); }
 	};
 	////////////////////////////////////////////////////
 

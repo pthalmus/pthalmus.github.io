@@ -152,6 +152,7 @@
     <ClInclude Include="..\Global\Protocol\NetMsgUser.h" />
     <ClInclude Include="..\Global\Protocol\NetMsgUserS.h" />
     <ClInclude Include="..\Global\Singleton.h" />
+    <ClInclude Include="..\Global\ThreadPool.h" />
     <ClInclude Include="..\Global\ThreadSafeQueue.h" />
     <ClInclude Include="..\Global\Types.h" />
     <ClInclude Include="..\Global\UserSocket.h" />

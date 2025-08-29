@@ -52,6 +52,7 @@ namespace NetLogin
 	{
 		char szUserID[32]; // User ID
 		char szPassword[32]; // Password
+		UUID UUID;
 		size_t GetSize() override { return sizeof(request_login_fromLogin); }
 	};
 	////////////////////////////////////////////////////
@@ -61,6 +62,7 @@ namespace NetLogin
 	struct result_login_fromMain : public PACKET
 	{
 		eNetResult eResult; // Result of the login attempt
+		UUID UUID;
 		size_t GetSize() override { return sizeof(result_login_fromMain); }
 	};
 	////////////////////////////////////////////////////
@@ -71,6 +73,7 @@ namespace NetLogin
 	{
 		char szUserID[32]; // User ID
 		char szCertKey[64]; // Certification Key
+		UUID UUID;
 		size_t GetSize() override { return sizeof(request_cert_fromLogin); }
 	};
 	////////////////////////////////////////////////////
@@ -80,6 +83,7 @@ namespace NetLogin
 	struct result_cert_fromMain : public PACKET
 	{
 		eNetResult eResult; // Result of the login attempt
+		UUID UUID;
 		size_t GetSize() override { return sizeof(result_cert_fromMain); }
 	};
 	////////////////////////////////////////////////////

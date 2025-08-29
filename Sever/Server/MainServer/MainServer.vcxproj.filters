@@ -41,6 +41,15 @@
     <ClCompile Include="NetMsgFuncMemCached.cpp">
       <Filter>NetMsgFunc\Source</Filter>
     </ClCompile>
+    <ClCompile Include="NetMsgFuncUserS.cpp">
+      <Filter>NetMsgFunc\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="NetMsgFuncChat.cpp">
+      <Filter>NetMsgFunc\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="NetMsgFuncGame.cpp">
+      <Filter>NetMsgFunc\Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Global\CreatDirectorys.h">

@@ -9,7 +9,7 @@ bool NetMsgFunc::Request_Connect_FromMemCached(NetMain::request_connect_fromMemC
 
 bool NetMsgFunc::Result_Connect_FromMain(NetMain::result_connect_fromMain* pBase, USERSESSION* pSession)
 {
-	GetMainThread().CompleteConnectMainServer();
+	GetMainThread().RequestDBConnectionData();
 	return true;
 }
 
@@ -25,7 +25,7 @@ bool NetMsgFunc::Request_DBInfo_FromMemCached(NetMain::request_dbinfo_fromMemCac
 	{
 		return false;
 	}
-	if (pSession->eLine != NetLine::NetLine_Main_MemCachedS)
+	if (pSession->eLine != NetLine::NetLine_Main)
 	{
 		return false;
 	}
@@ -44,7 +44,7 @@ bool NetMsgFunc::Result_DBInfo_FromMain(NetMain::result_dbinfo_fromMain* pBase, 
 	{
 		return false;
 	}
-	if (pSession->eLine != NetLine::NetLine_Main_MemCachedS)
+	if (pSession->eLine != NetLine::NetLine_Main)
 	{
 		return false;
 	}

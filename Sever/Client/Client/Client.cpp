@@ -90,6 +90,7 @@ DWORD WINAPI ThreadFunc(MainClient client)
 int main()
 {
 	MainClient client;
+	client.LoadConnectEx();
 	if (StartLogSetting() == false)
 	{
 		return 0;
