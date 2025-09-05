@@ -21,12 +21,30 @@ bool NetMsgFunc::Request_Login_FromUser(NetLogin::request_login_fromUser* pBase,
 	NetLogin::request_login_fromLogin* pMsg = CREATE_PACKET(NetLogin::request_login_fromLogin, NetLine::NetLine_Main_LoginS, NetLogin::eRequest_Login_FromLogin);
 	strcpy_s(pMsg->szUserID, sizeof(pMsg->szUserID), pBase->szUserID);
 	strcpy_s(pMsg->szPassword, sizeof(pMsg->szPassword), pBase->szPassword);
+	strcpy_s(pMsg->szUUID, sizeof(pMsg->szUUID), pSession->strUUID.c_str()); // Replace with actual UUID if available
 	GetPacketDispatcher().DispatchSend(GetMainThread().GetMainServer(), (const char*)pMsg, pMsg->GetSize());
 	return true;
 }
 
 bool NetMsgFunc::Result_Login_FromMain(NetLogin::result_login_fromMain* pBase, USERSESSION* pSession)
 {
+	if (pBase == nullptr || pSession == nullptr)
+	{
+		return false;
+	}
+	if (pSession->eLine != NetLine::NetLine_Main)
+	{
+		return false;
+	}
+	USERSESSION* pUserSession = GetMainThread().FindUserSessionByUUID(pBase->szUUID);
+	if (pUserSession == nullptr)
+	{
+		GetLogManager().SystemLog(__FUNCTION__, __LINE__, "No matching user session for UUID: %s", pBase->szUUID);
+		return false;
+	}
+	NetLogin::result_login_fromLogin* pMsg = CREATE_PACKET(NetLogin::result_login_fromLogin, NetLine::NetLine_LoginS_User, NetLogin::eResult_Login_FromLogin);
+	pMsg->eResult = pBase->eResult;
+	GetPacketDispatcher().DispatchSend(pUserSession, (const char*)pMsg, pMsg->GetSize());
 	return true;
 }
 

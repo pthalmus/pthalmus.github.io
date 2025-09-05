@@ -4,6 +4,7 @@
 #include <vector>
 #include <UserSocket.h>
 #include <LogManager.h>
+#include <ThreadPool.h>
 
 class MainClient
 {
@@ -36,5 +37,5 @@ public:
 	bool ConnectToLoginServer();
 	bool StartNetwork();
 	DWORD WINAPI ThreadComplete();
-	void LoadConnectEx();
+	bool LoadConnectEx();
 };

@@ -130,6 +130,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AgentUser.cpp" />
     <ClCompile Include="DBFunc.cpp" />
     <ClCompile Include="DBThread.cpp" />
     <ClCompile Include="MainThread.cpp" />
@@ -154,6 +155,7 @@
     <ClInclude Include="..\Global\ThreadSafeQueue.h" />
     <ClInclude Include="..\Global\Types.h" />
     <ClInclude Include="..\Global\UserSocket.h" />
+    <ClInclude Include="AgentUser.h" />
     <ClInclude Include="DBFunc.h" />
     <ClInclude Include="DBStruct.h" />
     <ClInclude Include="DBThread.h" />

@@ -139,9 +139,10 @@ _SQLRESULT DataBaseManager::Excute(const std::string& strDsn, const std::string&
     }
 
     SQLHSTMT hStmt = SQL_NULL_HSTMT;
-    if (SQLAllocHandle(SQL_HANDLE_STMT, phDbc, &hStmt) != SQL_SUCCESS)
+    SQLRETURN retHandle = SQLAllocHandle(SQL_HANDLE_STMT, this->connections[strDsn], &hStmt);
+    if (retHandle != SQL_SUCCESS)
     {
-        GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Failed to allocate statement handle.");
+        GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Failed to allocate statement handle. type:", std::to_string(retHandle).c_str());
 		result.strErrorMessage = "Failed to allocate statement handle.";
 		return result; // Failed to allocate statement handle
     }

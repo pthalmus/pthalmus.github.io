@@ -28,6 +28,7 @@ typedef struct _USERSESSION
 	NetLine::en		eLine;
 	SOCKADDR		hAddr;
 	UUID				UUID;
+	std::string		strUUID; // UUID를 문자열로 저장
 	
 	IO_DATA			recv_io;
 	IO_DATA*		send_io;

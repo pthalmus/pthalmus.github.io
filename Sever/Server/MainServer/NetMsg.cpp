@@ -14,3 +14,6 @@ AUTO_REGISTER_PACKET_HANDLER(NetLine_Main, NetMain::eRequest_DBInfo_FromMemCache
 // NetLine_Main_LoginS
 AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_LoginS, NetLogin::eRequest_Login_FromLogin, eRequest_Login_FromLogin, NetLogin::request_login_fromLogin, NetMsgFunc::Request_Login_FromLogin)
 AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_LoginS, NetLogin::eRequest_Cert_FromLogin, eRequest_Cert_FromLogin, NetLogin::request_cert_fromLogin, NetMsgFunc::Request_Cert_FromLogin)
+
+// NetLine_Main_MemCached
+AUTO_REGISTER_PACKET_HANDLER(NetLine_Main_MemCachedS, NetMemCached::eResult_Login_FromMemCached, eResult_Login_FromMemCached, NetMemCached::result_login_fromMemCached, NetMsgFunc::Result_Login_FromMemCached)

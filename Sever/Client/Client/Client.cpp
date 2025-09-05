@@ -3,7 +3,7 @@
 #include <LogManager.h>
 #include <Protocol/NetMsg.h>
 #include "MainClient.h"
-
+#include <ThreadPool.h>
 
 bool StartLogSetting()
 {
@@ -62,7 +62,7 @@ bool LoadConfigSetting(MainClient* pClient)
 	return true;
 }
 
-DWORD WINAPI ThreadFunc(MainClient client)
+DWORD WINAPI ThreadFunc(MainClient* client)
 {
 	std::string strStream;
 	auto* pMsg = CREATE_PACKET(NetLogin::request_login_fromUser, NetLine::NetLine_LoginS_User, NetLogin::eRequest_Login_FromUser);
@@ -71,9 +71,9 @@ DWORD WINAPI ThreadFunc(MainClient client)
 	std::cout << "Enter Password: ";
 	std::cin >> pMsg->szPassword;
 
-	strcpy_s(pMsg->szClientVersion, client.m_strVersion.c_str());
+	strcpy_s(pMsg->szClientVersion, client->m_strVersion.c_str());
 
-	GetPacketDispatcher().DispatchSend(client.m_pSession, (char*)pMsg, pMsg->GetSize());
+	GetPacketDispatcher().DispatchSend(client->m_pSession, (char*)pMsg, pMsg->GetSize());
 	while (true)
 	{
 		std::cin >> strStream;
@@ -89,13 +89,15 @@ DWORD WINAPI ThreadFunc(MainClient client)
 
 int main()
 {
-	MainClient client;
-	client.LoadConnectEx();
+	//메인 스레드 시작
+	GetThreadPool().init(MAX_THREAD_CNT);
+	MainClient* client = new MainClient();
+	client->LoadConnectEx();
 	if (StartLogSetting() == false)
 	{
 		return 0;
 	}
-	if (LoadConfigSetting(&client) == false)
+	if (LoadConfigSetting(client) == false)
 	{
 		ErrorHandler("Can not LoadConfig Settings");
 		return 0;
@@ -106,21 +108,25 @@ int main()
 	{
 		return false;
 	}
-	if(client.StartNetwork() == false)
+	if(client->StartNetwork() == false)
 	{
 		ErrorHandler("Can not Start Network");
 		return 0;
 	}
-	if(client.ConnectToLoginServer() == false)
+	if(client->ConnectToLoginServer() == false)
 	{
 		ErrorHandler("Can not Connect To LoginServer");
 		return 0;
 	}
 
-	std::thread t(ThreadFunc, client);
-	t.join();
+	GetThreadPool().enqueue([client]() {ThreadFunc(client); });
 
-	::closesocket(client.m_pSession->hSocket);
+	while (true)
+	{
+		Sleep(10);
+	}
+
+	::closesocket(client->m_pSession->hSocket);
 	::WSACleanup();
 	return 0;
 }

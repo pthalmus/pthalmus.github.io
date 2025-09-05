@@ -64,4 +64,4 @@ namespace opType {
 }
 
 #define MAX_THREAD_CNT 12
-#define IOCP_THREAD_CNT 8
+#define IOCP_THREAD_CNT 4

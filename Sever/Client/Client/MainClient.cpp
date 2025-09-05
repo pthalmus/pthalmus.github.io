@@ -18,23 +18,21 @@ bool MainClient::ConnectToLoginServer()
 	localAddr.sin_port = 0; // 시스템이 적절한 포트를 할당하도록 설정
 	::bind(hSocket, (SOCKADDR*)&localAddr, sizeof(localAddr));
 
-	m_pMainSSession = new USERSESSION();
-	ZeroMemory(m_pMainSSession, sizeof(USERSESSION));
-	m_pMainSSession->eLine = NetLine::NetLine_Main; //MainServer Line
-	m_pMainSSession->hSocket = hSocket;
+	m_pSession->eLine = NetLine::NetLine_LoginS_User;
+	m_pSession->hSocket = hSocket;
 
-	HANDLE hIOCPResult = ::CreateIoCompletionPort((HANDLE)m_pMainSSession->hSocket, m_hIocp, (ULONG_PTR)m_pMainSSession, 0);
+	HANDLE hIOCPResult = ::CreateIoCompletionPort((HANDLE)m_pSession->hSocket, hCompletionPort, (ULONG_PTR)m_pSession, 0);
 	if (hIOCPResult == NULL)
 	{
 		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Can Not Associate socket with IOCP");
-		::closesocket(m_pMainSSession->hSocket);
-		delete m_pMainSSession;
-		m_pMainSSession = nullptr;
+		::closesocket(m_pSession->hSocket);
+		delete m_pSession;
+		m_pSession = nullptr;
 		return false;
 	}
-	m_pMainSSession->connect_io.opType = opType::IO_CONNECT;
-	m_pMainSSession->connect_io.eLine = NetLine::NetLine_Main;
-	m_pMainSSession->connect_io.hSocket = hSocket;
+	m_pSession->connect_io.opType = opType::IO_CONNECT;
+	m_pSession->connect_io.eLine = NetLine::NetLine_LoginS_User;
+	m_pSession->connect_io.hSocket = hSocket;
 
 	// 포트 바인딩 및 연결
 	SOCKADDR_IN svraddr = { 0 };
@@ -43,60 +41,33 @@ bool MainClient::ConnectToLoginServer()
 	if (inet_pton(AF_INET, m_strLoginSIP.c_str(), &svraddr.sin_addr.S_un.S_addr) != 1)
 	{
 		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Main Server IP Convert error!!");
-		::closesocket(m_pMainSSession->hSocket);
-		delete m_pMainSSession;
-		m_pMainSSession = nullptr;
+		::closesocket(m_pSession->hSocket);
+		delete m_pSession;
+		m_pSession = nullptr;
 		return false;
 	}
 	DWORD dwBytes = 0;
-	if (!ConnectExPtr(m_pMainSSession->hSocket, (SOCKADDR*)&svraddr, sizeof(svraddr), NULL, 0, &dwBytes, (LPOVERLAPPED)&m_pMainSSession->connect_io))
+	if (!ConnectExPtr(m_pSession->hSocket, (SOCKADDR*)&svraddr, sizeof(svraddr), NULL, 0, &dwBytes, (LPOVERLAPPED)&m_pSession->connect_io))
 	{
 		int nError = ::WSAGetLastError();
 		if (nError != WSA_IO_PENDING)
 		{
 			GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Can Not Connect MainServer");
-			::closesocket(m_pMainSSession->hSocket);
-			delete m_pMainSSession;
-			m_pMainSSession = nullptr;
-			return false;
-		}
-	}
-	return true;
-
-	//포트 바인딩 및 연결
-	SOCKADDR_IN	svraddr = { 0 };
-	svraddr.sin_family = AF_INET;
-	svraddr.sin_port = htons(m_nLoginSPort);
-	if (inet_pton(AF_INET, m_strLoginSIP.c_str(), &svraddr.sin_addr.S_un.S_addr) != 1)
-	{
-		puts("Can Not Create Socket");
-		return false;
-	}
-	if (::connect(m_pSession->hSocket, (SOCKADDR*)&svraddr, sizeof(svraddr)) == SOCKET_ERROR)
-	{
-		puts("Can not Connect to LoginServer");
-		return false;
-	}
-
-	DWORD dwRecvBytes = 0;
-	DWORD dwFlags = 0;
-	if (::WSARecv(m_pSession->hSocket, &m_pSession->recv_io.wsaBuf, 1, &dwRecvBytes, &dwFlags, &m_pSession->recv_io, NULL) == SOCKET_ERROR)
-	{
-		if (::WSAGetLastError() != WSA_IO_PENDING)
-		{
-			GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "WSARecv failed on MainServer connection");
 			::closesocket(m_pSession->hSocket);
 			delete m_pSession;
 			m_pSession = nullptr;
 			return false;
 		}
 	}
-
 	return true;
 }
 
 bool MainClient::StartNetwork()
 {
+	if (LoadConnectEx() == false)
+	{
+		return false;
+	}
 	USERSESSION* session = new USERSESSION();
 	if (session == nullptr)
 	{
@@ -122,8 +93,7 @@ bool MainClient::StartNetwork()
 		return false;
 	}
 
-	std::thread t(&MainClient::ThreadComplete, this);
-	t.detach();
+	GetThreadPool().enqueue([this]() { this->ThreadComplete(); });
 	return true;
 }
 
@@ -133,8 +103,6 @@ DWORD WINAPI MainClient::ThreadComplete()
 	USERSESSION* pSession = NULL;
 	IO_DATA* pIOData = NULL;
 	BOOL				bResult;
-	DWORD			dwRecvBytes = 0;
-	DWORD			dwFlags = 0;
 
 	GetLogManager().SystemLog(__FUNCTION__, __LINE__, "IOCP WorkerThread Start!!");
 	while (this->m_bRun)
@@ -151,23 +119,33 @@ DWORD WINAPI MainClient::ThreadComplete()
 			switch (pIOData->opType)
 			{
 			case opType::IO_SEND:
+			{
 				delete pIOData;
-				break;
+			}
+			break;
 			case opType::IO_RECV:
+			{
 				//수신한 데이터가 0이면 연결 종료.
 				if (dwTransferredSize == 0)
 				{
+					delete pIOData;
+					GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Close Client Nomally.");
 					continue;
 				}
+
 				GetPacketDispatcher().Dispatch(pIOData->buffer, dwTransferredSize, pSession);
 				pIOData->wsaBuf.len = sizeof(pIOData->buffer);
+				DWORD dwRecvBytes = 0;
+				DWORD dwFlags = 0;
 				if (WSARecv(pSession->hSocket, &pSession->recv_io.wsaBuf, 1, &dwRecvBytes, &dwFlags, pIOData, NULL) == SOCKET_ERROR)
 				{
 					if (::WSAGetLastError() != WSA_IO_PENDING)
 						puts("\tGQCS: ERROR: WSARecv()");
 				}
-				break;
+			}
+			break;
 			case opType::IO_CONNECT:
+			{
 				// ConnectEx 완료 처리
 				// SO_UPDATE_CONNECT_CONTEXT 호출 (선택 사항이지만 권장)
 				setsockopt(pSession->hSocket, SOL_SOCKET, SO_UPDATE_CONNECT_CONTEXT, NULL, 0);
@@ -176,12 +154,20 @@ DWORD WINAPI MainClient::ThreadComplete()
 				pSession->recv_io.opType = opType::IO_RECV;
 				pSession->recv_io.wsaBuf.buf = pSession->recv_io.buffer;
 				pSession->recv_io.wsaBuf.len = sizeof(pSession->recv_io.buffer);
+				DWORD dwRecvBytes = 0;
+				DWORD dwFlags = 0;
 				if (WSARecv(pSession->hSocket, &pSession->recv_io.wsaBuf, 1, &dwRecvBytes, &dwFlags, &pSession->recv_io, NULL) == SOCKET_ERROR)
 				{
 					if (::WSAGetLastError() != WSA_IO_PENDING)
 						puts("\tGQCS: ERROR: WSARecv()");
 				}
-				break;
+			}
+			break;
+			case opType::IO_ACCEPT:
+			{
+				//Client는 Aceept를 받지 않습니다.
+			}
+			break;
 			default:
 				break;
 			}
@@ -211,10 +197,21 @@ DWORD WINAPI MainClient::ThreadComplete()
 	puts("[IOCP 작업자 스레드 종료]");
 	return 0;
 }
-void MainClient::LoadConnectEx()
+bool MainClient::LoadConnectEx()
 {
+	SOCKET hDummySocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
 	GUID guidConnectEx = WSAID_CONNECTEX;
 	DWORD dwBytes = 0;
-	WSAIoctl(INVALID_SOCKET, SIO_GET_EXTENSION_FUNCTION_POINTER, &guidConnectEx, sizeof(guidConnectEx),
+	WSAIoctl(hDummySocket, SIO_GET_EXTENSION_FUNCTION_POINTER, &guidConnectEx, sizeof(guidConnectEx),
 		&ConnectExPtr, sizeof(ConnectExPtr), &dwBytes, NULL, NULL);
+
+	::closesocket(hDummySocket);
+
+	if (ConnectExPtr == nullptr)
+	{
+		GetLogManager().ErrorLog(__FUNCTION__, __LINE__, "Can Not Load ConnectEx Function:", WSAGetLastError());
+		return false;
+	}
+	return true;
 };

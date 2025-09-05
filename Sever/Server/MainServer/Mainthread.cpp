@@ -35,7 +35,7 @@ void MainThread::StartMainThread()
 	std::cout << "Main Thread Start Complete!!" << std::endl;
 	while (m_bRunning)
 	{
-		Sleep(1);
+		Sleep(1000);
 	}
 }
 
@@ -64,26 +64,22 @@ bool WINAPI MainThread::Release(DWORD dwType)
 		//3. Socket 리스트 정리
 		for (auto& iter : m_UserSList)
 		{
-			::shutdown(iter, SD_BOTH);
-			::closesocket(iter);
+			CloseClient(iter);
 		}
 		m_UserSList.clear();
 		for (auto& iter : m_ChatSList)
 		{
-			::shutdown(iter, SD_BOTH);
-			::closesocket(iter);
+			CloseClient(iter);
 		}
 		m_ChatSList.clear();
 		for (auto& iter : m_LoginSList)
 		{
-			::shutdown(iter, SD_BOTH);
-			::closesocket(iter);
+			CloseClient(iter);
 		}
 		m_LoginSList.clear();
 		for (auto& iter : m_MemCachedSList)
 		{
-			::shutdown(iter, SD_BOTH);
-			::closesocket(iter);
+			CloseClient(iter);
 		}
 		m_MemCachedSList.clear();
 
@@ -315,25 +311,25 @@ bool MainThread::StartDBConnection()
 	return true;
 }
 
-void MainThread::AddServerList(SOCKET hSocket, NetLine::en eLine)
+void MainThread::AddServerList(USERSESSION* pSession, NetLine::en eLine)
 {
 	::EnterCriticalSection(&m_cs);
 	switch (eLine)
 	{
 	case NetLine::NetLine_Main_LoginS:
-		m_LoginSList.push_back(hSocket);
+		m_LoginSList.push_back(pSession);
 		break;
 	case NetLine::NetLine_Main_MemCachedS:
-		m_MemCachedSList.push_back(hSocket);
+		m_MemCachedSList.push_back(pSession);
 		break;
 	case NetLine::NetLine_Main_UserS:
-		m_UserSList.push_back(hSocket);
+		m_UserSList.push_back(pSession);
 		break;
 	case NetLine::NetLine_Main_ChatS:
-		m_ChatSList.push_back(hSocket);
+		m_ChatSList.push_back(pSession);
 		break;
 	case NetLine::NetLine_Main_GameS:
-		m_GameSSList.push_back(hSocket);
+		m_GameSSList.push_back(pSession);
 		break;
 	default:
 		break;
@@ -500,22 +496,22 @@ void MainThread::CloseClient(USERSESSION* pSession)
 	switch (pSession->eLine)
 	{
 	case NetLine::NetLine_Main_UserS:
-		m_UserSList.remove(pSession->hSocket);
+		m_UserSList.remove(pSession);
 		break;
 	case NetLine::NetLine_Main_ChatS:
-		m_ChatSList.remove(pSession->hSocket);
+		m_ChatSList.remove(pSession);
 		break;
 	case NetLine::NetLine_Main_LoginS:
-		m_LoginSList.remove(pSession->hSocket);
+		m_LoginSList.remove(pSession);
 		break;
 	case NetLine::NetLine_Main_MemCachedS:
-		m_MemCachedSList.remove(pSession->hSocket);
+		m_MemCachedSList.remove(pSession);
 		break;
 	default:
-		m_UserSList.remove(pSession->hSocket);
-		m_ChatSList.remove(pSession->hSocket);
-		m_LoginSList.remove(pSession->hSocket);
-		m_MemCachedSList.remove(pSession->hSocket);
+		m_UserSList.remove(pSession);
+		m_ChatSList.remove(pSession);
+		m_LoginSList.remove(pSession);
+		m_MemCachedSList.remove(pSession);
 		break;
 	}
 	::LeaveCriticalSection(&m_cs);

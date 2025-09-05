@@ -44,6 +44,11 @@ public:
         if (pIOData == nullptr) {
             return false;
         }
+        if(pSession == nullptr || pSession->hSocket == INVALID_SOCKET || pstrPacketData == nullptr || nPacketSize == 0)
+        {
+            delete pIOData;
+            return false;
+		}
 
         // IO_DATA 구조체 초기화
         ::ZeroMemory(pIOData, sizeof(IO_DATA));

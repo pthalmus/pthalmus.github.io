@@ -38,11 +38,11 @@ private:
 	std::unordered_map< NetLine::en, SOCKET> m_umListenSocket;
 	CRITICAL_SECTION  m_cs;
 
-	std::list<SOCKET> m_UserSList;
-	std::list<SOCKET> m_ChatSList;
-	std::list<SOCKET> m_LoginSList;
-	std::list<SOCKET> m_MemCachedSList;
-	std::list<SOCKET> m_GameSSList;
+	std::list<USERSESSION*> m_UserSList;
+	std::list<USERSESSION*> m_ChatSList;
+	std::list<USERSESSION*> m_LoginSList;
+	std::list<USERSESSION*> m_MemCachedSList;
+	std::list<USERSESSION*> m_GameSSList;
 
 public:
 	void StartMainThread();
@@ -71,7 +71,23 @@ public:
 		strcpy_s(strServer, nServerSize, m_strServer.c_str());
 	}
 
-	void AddServerList(SOCKET hSocket, NetLine::en eLine);
+	void AddServerList(USERSESSION* pSession, NetLine::en eLine);
+	USERSESSION* GetMemCachedServer()
+	{
+		if (m_MemCachedSList.empty())
+		{
+			return nullptr;
+		}
+		return m_MemCachedSList.front();
+	}
+	USERSESSION* GetLoginServer()
+	{
+		if (m_LoginSList.empty())
+		{
+			return nullptr;
+		}
+		return m_LoginSList.front();
+	}
 };
 
 #define GetMainThread() MainThread::Instance()

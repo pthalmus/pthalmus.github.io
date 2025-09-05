@@ -10,13 +10,13 @@ bool NetMsgFunc::Request_Login_FromMain(NetMemCached::request_login_fromMain* pB
 	{
 		return false;
 	}
-	if (pSession->eLine != NetLine::NetLine_Main_MemCachedS)
+	if (pSession->eLine != NetLine::NetLine_Main)
 	{
 		return false;
 	}
 
 	// Add the request to the DB thread
-	if (GetMainThread().AddDBRequest(new Select_Member(pBase->szUserID, pBase->szPassword, pSession)) == false)
+	if (GetMainThread().AddDBRequest(new Select_Member(pBase->szUserID, pBase->szPassword, pSession, pBase->szUUID)) == false)
 	{
 		GetLogManager().SystemLog(__FUNCTION__, __LINE__, "Failed to add login request to DB thread: %s", pBase->szUserID);
 		return false;

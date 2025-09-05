@@ -34,7 +34,7 @@ private:
     CRITICAL_SECTION  m_cs;
 
     USERSESSION* m_pMainSSession;
-    std::list<SOCKET> m_UserList;
+    std::list<USERSESSION*> m_UserList;
     std::unordered_map< std::string, USERSESSION*> m_umUserSesseion;
 
 
@@ -57,6 +57,13 @@ public:
     bool LoadAcceptEx();
 
     USERSESSION* GetMainServer() { return this->m_pMainSSession; }
+    USERSESSION* FindUserSessionByUUID(const std::string& uuid) {
+        auto it = m_umUserSesseion.find(uuid);
+        if (it != m_umUserSesseion.end()) {
+            return it->second;
+        }
+        return nullptr;
+	}
 
 	void CompleteConnectMainServer();
 };

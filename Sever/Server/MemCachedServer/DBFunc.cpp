@@ -3,7 +3,7 @@
 
 bool _Select_Member::Do()
 {
-	strSql = std::format("exec [dbo].[Select_Member] {},{}", szUserID, szPassword);
+	strSql = std::format("exec [dbo].[Select_Member] '{}','{}'", szUserID, szPassword);
 	_SQLRESULT result = GetDBManager().Excute(STRDSN_MEMBER_W, strSql);
 
 	if (result.bSuccess == false)
@@ -27,7 +27,8 @@ void _Select_Member::Done()
 	{
 		NetMemCached::result_login_fromMemCached* pMsg = CREATE_PACKET(NetMemCached::result_login_fromMemCached, NetLine::NetLine_Main_MemCachedS, NetMemCached::eResult_Login_FromMemCached);
 		pMsg->eResult = bIsValid ? NetMemCached::eNetSuccess : NetMemCached::eMAX; // Set result based on bIsValid
-		WSASend(pSession->hSocket, (LPWSABUF)pMsg, sizeof(pMsg), NULL, 0, NULL, NULL);
+		strcpy_s(pMsg->szUUID, sizeof(pMsg->szUUID), szUUID); // Copy UUID to the response message
+		GetPacketDispatcher().DispatchSend(pSession, (const char*)pMsg, pMsg->GetSize());
 		delete pMsg;
 	}
 }

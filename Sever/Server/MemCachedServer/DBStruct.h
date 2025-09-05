@@ -11,11 +11,11 @@ typedef struct _Select_Member : public SQLDATA
 	//IN
 	char szUserID[32]; // User ID
 	char szPassword[32]; // Password
-
+	char szUUID[37]; // Client UUID
 	//OUT
 	bool bIsValid; // Is the user certificate valid?
 
-	_Select_Member(const char* userID, const char* password, USERSESSION* in_pSession)
+	_Select_Member(const char* userID, const char* password, USERSESSION* in_pSession, const char* in_uuid)
 	{
 		eType = SQLTYPE::SQL_MEMBER;
 		pSession = in_pSession;
@@ -23,6 +23,8 @@ typedef struct _Select_Member : public SQLDATA
 		szUserID[sizeof(szUserID) - 1] = '\0'; // Ensure null termination
 		strncpy_s(szPassword, password, sizeof(szPassword) - 1);
 		szPassword[sizeof(szPassword) - 1] = '\0'; // Ensure null termination
+		strncpy_s(szUUID, in_uuid, sizeof(szUUID) - 1);
+		szUUID[sizeof(szUUID) - 1] = '\0'; // Ensure null termination
 		bIsValid = false;
 	}
 

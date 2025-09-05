@@ -37,6 +37,9 @@
     <Filter Include="DB\Struct">
       <UniqueIdentifier>{31954c04-f997-4479-8a0f-ab3c8456b322}</UniqueIdentifier>
     </Filter>
+    <Filter Include="DB\Agent">
+      <UniqueIdentifier>{67890bde-a64b-4230-ad24-672e0cd28789}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MemCachedServer.cpp">
@@ -59,6 +62,9 @@
     </ClCompile>
     <ClCompile Include="NetMsgFuncMemCached.cpp">
       <Filter>NetMsgFunc\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="AgentUser.cpp">
+      <Filter>DB\Agent</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -118,6 +124,9 @@
     </ClInclude>
     <ClInclude Include="DBStruct.h">
       <Filter>DB\Struct</Filter>
+    </ClInclude>
+    <ClInclude Include="AgentUser.h">
+      <Filter>DB\Agent</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

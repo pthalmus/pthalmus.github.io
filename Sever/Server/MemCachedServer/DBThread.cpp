@@ -15,7 +15,7 @@ void DBThread::StartDBThread()
 			StopDBThread();
 			break;
 		}
-		Sleep(1); // Prevent busy waiting
+		Sleep(1000); // Prevent busy waiting
 	}
 }
 
@@ -75,6 +75,6 @@ void DBThread::DBResponseFunc()
 			delete pData; // Clean up after processing
 		}
 		m_mResponse.unlock();
-		Sleep(1); // Prevent busy waiting
+		Sleep(50); // Prevent busy waiting
 	}
 }

@@ -46,7 +46,7 @@ namespace NetMemCached
 	{
 		char szUserID[32]; // User ID
 		char szPassword[32]; // Password
-		UUID UUID;
+		char szUUID[37]; // Client UUID
 		size_t GetSize() const { return sizeof(request_login_fromMain); }
 	};
 	////////////////////////////////////////////////////
@@ -56,7 +56,7 @@ namespace NetMemCached
 	struct result_login_fromMemCached : public PACKET
 	{
 		eNetResult eResult; // Result of the login attempt
-		UUID UUID;
+		char szUUID[37]; // Client UUID
 		size_t GetSize() const { return sizeof(result_login_fromMemCached); }
 	};
 	////////////////////////////////////////////////////
@@ -67,7 +67,7 @@ namespace NetMemCached
 	{
 		char szUserID[32]; // User ID
 		char szCertNum[32]; // Certification Number
-		UUID UUID;
+		char szUUID[37]; // Client UUID
 		size_t GetSize() const { return sizeof(request_cert_fromMain); }
 	};
 	////////////////////////////////////////////////////
@@ -77,7 +77,7 @@ namespace NetMemCached
 	struct result_cert_fromMemCached : public PACKET
 	{
 		eNetResult eResult; // Result of the certification attempt
-		UUID UUID;
+		char szUUID[37]; // Client UUID
 		size_t GetSize() const { return sizeof(result_cert_fromMemCached); }
 	};
 	////////////////////////////////////////////////////

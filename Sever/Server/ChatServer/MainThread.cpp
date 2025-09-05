@@ -25,7 +25,7 @@ void MainThread::StartMainThread()
 	std::cout << "Main Thread Start Complete!!" << std::endl;
 	while (m_bRunning)
 	{
-		Sleep(1);
+		Sleep(1000);
 	}
 }
 
@@ -135,7 +135,7 @@ bool MainThread::StartNetSetting()
 		return false;
 	}
 	//IOCP 스레드들 생성
-	for (int i = 0; i < MAX_THREAD_CNT; ++i)
+	for (int i = 0; i < IOCP_THREAD_CNT; ++i)
 	{
 		//ThreadPool에 IOCP스레드 등록
 		GetThreadPool().enqueue([this]() { this->ThreadComplete(); });
@@ -269,7 +269,7 @@ DWORD WINAPI MainThread::ThreadComplete()
 				pNewUser->recv_io.opType = opType::IO_RECV;
 				pNewUser->recv_io.wsaBuf.buf = pNewUser->recv_io.buffer;
 				pNewUser->recv_io.wsaBuf.len = sizeof(pNewUser->recv_io.buffer);
-				if (WSARecv(pSession->hSocket, &pSession->recv_io.wsaBuf, 1, &dwRecvBytes, &dwFlags, &pNewUser->recv_io, NULL) == SOCKET_ERROR)
+				if (WSARecv(pNewUser->hSocket, &pNewUser->recv_io.wsaBuf, 1, &dwRecvBytes, &dwFlags, &pNewUser->recv_io, NULL) == SOCKET_ERROR)
 				{
 					if (::WSAGetLastError() != WSA_IO_PENDING)
 						puts("\tGQCS: ERROR: WSARecv()");
@@ -346,6 +346,9 @@ bool MainThread::PostAccept(NetLine::en eLine)
 	ZeroMemory(pIOData, sizeof(IO_DATA));
 	pIOData->opType = opType::IO_ACCEPT;
 	pIOData->hSocket = hAcceptSocket;
+	pIOData->eLine = eLine;
+	pIOData->wsaBuf.buf = pIOData->buffer;
+	pIOData->wsaBuf.len = sizeof(pIOData->buffer);
 
 	// listen 소켓에 미리 생성한 소켓을 연결하여 비동기 accept 작업 등록
 	DWORD dwBytes = 0;
