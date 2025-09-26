@@ -545,3 +545,8 @@ void MainThread::CompleteConnectMainServer()
 	NetMain::request_connect_fromLogin* pMsg = CREATE_PACKET(NetMain::request_connect_fromLogin, NetLine::NetLine_Main, NetMain::eRequest_Connect_FromLogin);
 	NetMsgFunc::Request_Connect_FromLogin(pMsg, m_pMainSSession);
 }
+
+void MainThread::HandleHttpResponse(httpRequest*, HttpResponse)
+{
+
+}

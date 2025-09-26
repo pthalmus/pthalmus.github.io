@@ -63,5 +63,15 @@ namespace opType {
 	};
 }
 
+namespace HttpMethod {
+	enum en
+	{
+		GET,
+		POST,
+	};
+}
+
+
+
 #define MAX_THREAD_CNT 12
 #define IOCP_THREAD_CNT 4

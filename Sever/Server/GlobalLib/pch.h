@@ -19,6 +19,7 @@
 #include <DataBaseManager.h>
 #include <ThreadPool.h>
 #include <ThreadSafeQueue.h>
+#include <HttpManager.h>
 
 #include <Protocol/NetMsg.h>
 #include <Protocol/NetMsgMain.h>

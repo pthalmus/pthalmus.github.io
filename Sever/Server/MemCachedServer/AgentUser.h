@@ -23,6 +23,6 @@ private:
 	std::mutex mapMutex;
 
 public:
-}
+};
 
 #define GetAgentUser() AgentUser::Instance()

@@ -24,6 +24,9 @@
     <Filter Include="MainThread">
       <UniqueIdentifier>{2e4bd13c-dffe-42a6-b51e-4a05678fa941}</UniqueIdentifier>
     </Filter>
+    <Filter Include="HttpThread">
+      <UniqueIdentifier>{22f0d2a9-1e6a-41b3-ab3f-78b0e3952b82}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LoginServer.cpp">
@@ -40,6 +43,9 @@
     </ClCompile>
     <ClCompile Include="Mainthread.cpp">
       <Filter>MainThread</Filter>
+    </ClCompile>
+    <ClCompile Include="HttpThread.cpp">
+      <Filter>HttpThread</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -90,6 +96,9 @@
     </ClInclude>
     <ClInclude Include="..\Global\UserSocket.h">
       <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="HttpThread.h">
+      <Filter>HttpThread</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

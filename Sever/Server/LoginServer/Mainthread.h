@@ -15,6 +15,7 @@
 #include <CreatDirectorys.h>
 #include <UserSocket.h>
 #include <ThreadPool.h>
+#include <HttpManager.h>
 
 class MainThread : public Singleton<MainThread>
 {
@@ -66,6 +67,8 @@ public:
 	}
 
 	void CompleteConnectMainServer();
+
+    void HandleHttpResponse(httpRequest*, HttpResponse);
 };
 
 #define GetMainThread() MainThread::Instance()
